@@ -113,7 +113,7 @@ input,select{font-family:inherit}
 .holds-none{font-size:11px;color:var(--text4);font-style:italic}
 
 /* ── RIGHT PANEL ── */
-.pos-right{width:420px;background:var(--surface);border-left:1.5px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.pos-right{width:50%;background:var(--surface);border-left:1.5px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
 
 .cart-header{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
 .cart-header h2{font-size:15px;font-weight:700;color:var(--text);flex:1;letter-spacing:-.3px}
@@ -206,6 +206,21 @@ input,select{font-family:inherit}
 .charge-btn:hover:not(:disabled){background:var(--g2);box-shadow:0 4px 14px rgba(22,169,126,.4);transform:translateY(-1px)}
 .charge-btn:active{transform:scale(.99)}
 .charge-btn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none;transform:none}
+
+/* NUMPAD */
+.numpad-section{padding:10px 14px 12px;border-top:1.5px solid var(--border);flex-shrink:0;background:var(--surface2)}
+.numpad-display{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.numpad-display-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.numpad-display-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);letter-spacing:-.5px}
+.numpad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.np-btn{padding:13px 8px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:17px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;text-align:center;transition:.12s;cursor:pointer;user-select:none}
+.np-btn:hover{background:var(--g3);border-color:var(--g4);color:var(--g)}
+.np-btn:active{transform:scale(.94);background:var(--g3)}
+.np-btn.np-zero{grid-column:span 1}
+.np-btn.np-del{font-size:16px;background:var(--surface2);color:var(--text2)}
+.np-btn.np-del:hover{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.np-btn.np-clear{font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:0;background:var(--surface2);color:var(--text2)}
+.np-btn.np-clear:hover{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber)}
 
 /* ═══════════════════════════════
    INVENTORY VIEW
@@ -461,6 +476,27 @@ tbody tr:hover{background:var(--surface2)}
           </div>
         </div>
         <button class="charge-btn" id="chargeBtn" onclick="initiateCharge()" disabled>Charge £0.00</button>
+      </div>
+      <!-- NUMPAD -->
+      <div class="numpad-section">
+        <div class="numpad-display">
+          <span class="numpad-display-label">Amount</span>
+          <span class="numpad-display-val" id="numpadDisplay">£0.00</span>
+        </div>
+        <div class="numpad-grid">
+          <button class="np-btn" onclick="npPress('7')">7</button>
+          <button class="np-btn" onclick="npPress('8')">8</button>
+          <button class="np-btn" onclick="npPress('9')">9</button>
+          <button class="np-btn" onclick="npPress('4')">4</button>
+          <button class="np-btn" onclick="npPress('5')">5</button>
+          <button class="np-btn" onclick="npPress('6')">6</button>
+          <button class="np-btn" onclick="npPress('1')">1</button>
+          <button class="np-btn" onclick="npPress('2')">2</button>
+          <button class="np-btn" onclick="npPress('3')">3</button>
+          <button class="np-btn np-clear" onclick="npPress('clear')">CLR</button>
+          <button class="np-btn np-zero" onclick="npPress('0')">0</button>
+          <button class="np-btn np-del" onclick="npPress('del')">⌫</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1017,6 +1053,34 @@ function showToast(msg){
 }
 // alias
 function toast(m){showToast(m);}
+
+// ── NUMPAD ──
+let npRaw = '';
+function npPress(k){
+  if(k==='clear'){npRaw='';}
+  else if(k==='del'){npRaw=npRaw.slice(0,-1);}
+  else if(k==='.'){if(!npRaw.includes('.'))npRaw+='.'}
+  else {
+    // max 2 decimal places
+    const dot=npRaw.indexOf('.');
+    if(dot>=0&&npRaw.length-dot>2)return;
+    npRaw+=k;
+  }
+  const val=parseFloat(npRaw)||0;
+  document.getElementById('numpadDisplay').textContent='£'+(npRaw===''?'0.00':npRaw.endsWith('.')?npRaw+'00':val.toFixed(2));
+  // feed into active payment input
+  if(payMethod==='cash'){
+    document.getElementById('cashReceived').value=npRaw||'';
+    calcChange();
+  } else if(payMethod==='split'){
+    const focused=document.activeElement;
+    const cardEl=document.getElementById('splitCard');
+    const cashEl=document.getElementById('splitCash');
+    const target=(focused===cashEl)?cashEl:cardEl;
+    target.value=npRaw||'';
+    calcSplit(target===cardEl?'card':'cash');
+  }
+}
 
 // ── INIT ──
 initCats();
