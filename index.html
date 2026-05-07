@@ -46,6 +46,9 @@ input,select{font-family:inherit}
 .nav-user{display:flex;align-items:center;gap:6px;cursor:pointer}
 .nav-avatar{width:28px;height:28px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
 .nav-user-name{font-size:12px;font-weight:500;color:rgba(255,255,255,.75)}
+.nav-fs-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;transition:.15s;color:rgba(255,255,255,.6)}
+.nav-fs-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-fs-btn svg{width:16px;height:16px;flex-shrink:0}
 
 /* ── BODY ROW ── */
 .body-row{display:flex;overflow:hidden;height:calc(100vh - 52px)}
@@ -403,6 +406,16 @@ tbody tr:hover{background:var(--surface2)}
     </div>
     <div class="nav-right">
       <span class="nav-clock" id="navClock">--:--</span>
+      <button class="nav-fs-btn" id="fsBtn" onclick="toggleFullscreen()" title="Toggle fullscreen">
+        <svg id="fsIconEnter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+          <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+        <svg id="fsIconExit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
+          <line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>
+        </svg>
+      </button>
       <div class="nav-user">
         <div class="nav-avatar">S</div>
         <span class="nav-user-name">Sarah</span>
@@ -754,6 +767,20 @@ function updateOrderTime(){
 }
 updateOrderTime();
 setInterval(updateOrderTime, 60000);
+
+// ── FULLSCREEN ──
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+  } else {
+    document.exitFullscreen().catch(()=>{});
+  }
+}
+document.addEventListener('fullscreenchange',()=>{
+  const inFS = !!document.fullscreenElement;
+  document.getElementById('fsIconEnter').style.display = inFS ? 'none' : '';
+  document.getElementById('fsIconExit').style.display  = inFS ? '' : 'none';
+});
 
 // ── SIDEBAR ──
 function toggleSidebar(){
