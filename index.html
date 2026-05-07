@@ -190,7 +190,7 @@ input,select{font-family:inherit}
 
 /* PAYMENT GRID */
 .payment-section{padding:8px 14px;border-top:1px solid var(--border);flex-shrink:0}
-.pay-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
 .pay-btn{padding:8px 4px;text-align:center;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:11px;font-weight:700;color:var(--text2);transition:.15s;background:var(--surface);cursor:pointer}
 .pay-btn span{font-size:15px;display:block;margin-bottom:2px}
 .pay-btn.active{border-color:var(--g);background:var(--g3);color:var(--g)}
@@ -520,7 +520,6 @@ tbody tr:hover{background:var(--surface2)}
               <h2>Current order</h2>
               <div class="cart-header-actions">
                 <button class="cart-hold-btn" onclick="holdOrder()">Hold</button>
-                <button class="cart-void-btn" onclick="showVoidModal()">Void</button>
                 <button class="cart-voidall-btn" onclick="showVoidAllModal()">Void All</button>
               </div>
             </div>
@@ -554,13 +553,12 @@ tbody tr:hover{background:var(--surface2)}
             <div class="totals-section">
               <div class="totals-inner">
                 <div class="total-row"><span>Items</span><span class="mono" id="itemCountRow">0</span></div>
-                <div class="total-row"><span>Subtotal</span><span class="mono" id="tSub">£0.00</span></div>
-                <div class="total-row"><span>VAT (20%)</span><span class="mono" id="tVat">£0.00</span></div>
-                <div class="total-row discount-row" id="discRow" style="display:none"><span id="discLabel">Discount (0%)</span><span class="mono" id="tDisc">-£0.00</span></div>
+                <div class="total-row"><span>Subtotal</span><span class="mono" id="tSub">Rs.0.00</span></div>
+                <div class="total-row discount-row" id="discRow" style="display:none"><span id="discLabel">Discount (0%)</span><span class="mono" id="tDisc">-Rs.0.00</span></div>
                 <div class="total-divider"></div>
                 <div class="total-grand-row">
                   <span class="total-grand-label">Total</span>
-                  <span class="total-grand-val" id="tTotal">£0.00</span>
+                  <span class="total-grand-val" id="tTotal">Rs.0.00</span>
                 </div>
               </div>
             </div>
@@ -570,7 +568,6 @@ tbody tr:hover{background:var(--surface2)}
               <div class="pay-grid">
                 <div class="pay-btn active" id="pb-card" onclick="selPay('card')"><span>💳</span>Card</div>
                 <div class="pay-btn" id="pb-cash" onclick="selPay('cash')"><span>💵</span>Cash</div>
-                <div class="pay-btn" id="pb-tap" onclick="selPay('tap')"><span>📱</span>Tap</div>
               </div>
               <button class="pay-split-btn" id="pb-split" onclick="selPay('split')">⚡ Split payment</button>
             </div>
@@ -580,18 +577,18 @@ tbody tr:hover{background:var(--surface2)}
               <div class="ccp-title">Cash received</div>
               <div class="quick-amounts" id="quickAmounts"></div>
               <div class="cash-input-wrap">
-                <span class="cash-currency">£</span>
+                <span class="cash-currency">Rs.</span>
                 <input class="cash-input" type="number" id="cashReceived" placeholder="0.00" min="0" step="0.01" oninput="calcChange()">
               </div>
             </div>
             <div class="change-result" id="changeResult">
               <div class="cash-row">
                 <span class="cash-row-label">Cash</span>
-                <span class="cash-row-val" id="crCash">£0.00</span>
+                <span class="cash-row-val" id="crCash">Rs.0.00</span>
               </div>
               <div class="cash-row">
                 <span class="cash-row-label" id="crLabel">Change</span>
-                <span class="cash-row-val" id="crAmount">£0.00</span>
+                <span class="cash-row-val" id="crAmount">Rs.0.00</span>
               </div>
             </div>
 
@@ -610,7 +607,7 @@ tbody tr:hover{background:var(--surface2)}
 
             <!-- CHARGE BUTTON -->
             <div class="charge-section">
-              <button class="charge-btn" id="chargeBtn" onclick="initiateCharge()" disabled>Charge £0.00</button>
+              <button class="charge-btn" id="chargeBtn" onclick="initiateCharge()" disabled>Charge Rs.0.00</button>
             </div>
           </div>
 
@@ -657,7 +654,7 @@ tbody tr:hover{background:var(--surface2)}
           <div class="inv-table-wrap">
             <table>
               <thead>
-                <tr><th>Product</th><th>Category</th><th>Price (£)</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Product</th><th>Category</th><th>Price (Rs.)</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody id="invTbody"></tbody>
             </table>
@@ -750,7 +747,7 @@ let transactions = [];
   for(let i=0;i<15;i++){
     const its=products.slice(Math.floor(Math.random()*5),Math.floor(Math.random()*5)+3).map(p=>({...p,qty:Math.floor(Math.random()*3)+1}));
     const sub=its.reduce((s,x)=>s+x.price*x.qty,0);
-    transactions.push({ref:'#'+(1000+i),type:Math.random()<.09?'refund':'sale',method:m[Math.floor(Math.random()*m.length)],total:parseFloat((sub*1.2).toFixed(2)),items:its,time:new Date(Date.now()-(i*28+Math.random()*15)*60000)});
+    transactions.push({ref:'#'+(1000+i),type:Math.random()<.09?'refund':'sale',method:m[Math.floor(Math.random()*m.length)],total:parseFloat(sub.toFixed(2)),items:its,time:new Date(Date.now()-(i*28+Math.random()*15)*60000)});
   }
 })();
 
@@ -873,7 +870,7 @@ function renderGrid(){
       ${p.age?'<div class="item-age-badge">18+</div>':''}
       <span class="item-emoji">${p.em}</span>
       <div class="item-name">${p.name}</div>
-      <div class="item-price">£${p.price.toFixed(2)}</div>
+      <div class="item-price">Rs.${p.price.toFixed(2)}</div>
       <span class="item-stock ${sc}">${stxt}</span>
       ${inCart?`<div class="item-badge">${inCart.qty}</div>`:''}
     `;
@@ -951,14 +948,14 @@ function renderCart(){
         <span class="ci-emoji">${item.em}</span>
         <div class="ci-info">
           <div class="ci-name">${item.name}</div>
-          <div class="ci-unit">£${item.price.toFixed(2)} each</div>
+          <div class="ci-unit">Rs.${item.price.toFixed(2)} each</div>
         </div>
         <div class="qty-ctrl">
           <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
           <span class="qty-num">${item.qty}</span>
           <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
         </div>
-        <span class="ci-total">£${(item.price*item.qty).toFixed(2)}</span>
+        <span class="ci-total">Rs.${(item.price*item.qty).toFixed(2)}</span>
         <button class="ci-remove" title="Remove" onclick="removeItem(${item.id})">✕</button>
       </div>
       ${i<cart.length-1?'<div class="cart-divider"></div>':''}
@@ -989,27 +986,24 @@ function clearDiscount(){
 // ── TOTALS ──
 function calcTotals(){
   const sub = cart.reduce((s,i)=>s+i.price*i.qty, 0);
-  const vat = sub * 0.20;
-  const preDisc = sub + vat;
-  const discAmt = discountPct > 0 ? preDisc * (discountPct/100) : 0;
-  const total = preDisc - discAmt;
+  const discAmt = discountPct > 0 ? sub * (discountPct/100) : 0;
+  const total = sub - discAmt;
   const count = cart.reduce((s,i)=>s+i.qty, 0);
 
-  document.getElementById('tSub').textContent = '£'+sub.toFixed(2);
-  document.getElementById('tVat').textContent = '£'+vat.toFixed(2);
+  document.getElementById('tSub').textContent = 'Rs.'+sub.toFixed(2);
   document.getElementById('itemCountRow').textContent = count;
 
   const discRow = document.getElementById('discRow');
   if(discountPct > 0 && discAmt > 0){
     discRow.style.display = '';
     document.getElementById('discLabel').textContent = `Discount (${discountPct}%)`;
-    document.getElementById('tDisc').textContent = '-£'+discAmt.toFixed(2);
+    document.getElementById('tDisc').textContent = '-Rs.'+discAmt.toFixed(2);
   } else {
     discRow.style.display = 'none';
   }
 
-  document.getElementById('tTotal').textContent = '£'+total.toFixed(2);
-  document.getElementById('chargeBtn').textContent = 'Charge £'+total.toFixed(2);
+  document.getElementById('tTotal').textContent = 'Rs.'+total.toFixed(2);
+  document.getElementById('chargeBtn').textContent = 'Charge Rs.'+total.toFixed(2);
   document.getElementById('chargeBtn').disabled = cart.length===0;
   buildQuickAmounts(total);
   calcChange();
@@ -1018,16 +1012,14 @@ function calcTotals(){
 
 function getTotal(){
   const sub = cart.reduce((s,i)=>s+i.price*i.qty, 0);
-  const vat = sub * 0.20;
-  const preDisc = sub + vat;
-  const discAmt = discountPct > 0 ? preDisc * (discountPct/100) : 0;
-  return parseFloat((preDisc - discAmt).toFixed(2));
+  const discAmt = discountPct > 0 ? sub * (discountPct/100) : 0;
+  return parseFloat((sub - discAmt).toFixed(2));
 }
 
 // ── PAYMENT METHOD ──
 function selPay(m){
   payMethod = m;
-  ['card','cash','tap'].forEach(x=>{
+  ['card','cash'].forEach(x=>{
     document.getElementById('pb-'+x)?.classList.remove('active');
   });
   document.getElementById('pb-split').classList.remove('active');
@@ -1046,7 +1038,7 @@ function buildQuickAmounts(total){
   if(!total){qa.innerHTML='';return;}
   const candidates = [parseFloat(total.toFixed(2)),Math.ceil(total/5)*5,Math.ceil(total/10)*10,Math.ceil(total/20)*20,50,100];
   const unique = [...new Set(candidates.map(v=>Math.round(v*100)/100))].filter(v=>v>=total-0.001).slice(0,5);
-  qa.innerHTML = unique.map(v=>`<button class="qa-btn${Math.abs(v-total)<0.01?' exact':''}" onclick="setCash(${v})">£${v%1===0?v:v.toFixed(2)}</button>`).join('');
+  qa.innerHTML = unique.map(v=>`<button class="qa-btn${Math.abs(v-total)<0.01?' exact':''}" onclick="setCash(${v})">Rs.${v%1===0?v:v.toFixed(2)}</button>`).join('');
 }
 function setCash(v){document.getElementById('cashReceived').value=v.toFixed(2);calcChange();}
 function calcChange(){
@@ -1058,17 +1050,17 @@ function calcChange(){
   const cash = document.getElementById('crCash');
   if(!paid||total===0){res.classList.remove('visible');return;}
   res.classList.add('visible');
-  cash.textContent = '£'+paid.toFixed(2);
+  cash.textContent = 'Rs.'+paid.toFixed(2);
   cash.className = 'cash-row-val';
   const change = parseFloat((paid-total).toFixed(2));
   if(change<0){
-    lbl.textContent='Still owed';amt.textContent='£'+Math.abs(change).toFixed(2);amt.className='cash-row-val red';
+    lbl.textContent='Still owed';amt.textContent='Rs.'+Math.abs(change).toFixed(2);amt.className='cash-row-val red';
     document.getElementById('chargeBtn').disabled=true;
   } else if(change<0.005){
-    lbl.textContent='Exact amount';amt.textContent='£0.00';amt.className='cash-row-val blue';
+    lbl.textContent='Exact amount';amt.textContent='Rs.0.00';amt.className='cash-row-val blue';
     document.getElementById('chargeBtn').disabled=cart.length===0;
   } else {
-    lbl.textContent='Change';amt.textContent='£'+change.toFixed(2);amt.className='cash-row-val green';
+    lbl.textContent='Change';amt.textContent='Rs.'+change.toFixed(2);amt.className='cash-row-val green';
     document.getElementById('chargeBtn').disabled=cart.length===0;
   }
 }
@@ -1091,7 +1083,7 @@ function calcSplit(changed){
     document.getElementById('chargeBtn').disabled=cart.length===0;
   } else {
     statusEl.className='split-status bad';
-    statusEl.textContent=diff>0?`Over by £${diff.toFixed(2)}`:`Remaining: £${Math.abs(diff).toFixed(2)}`;
+    statusEl.textContent=diff>0?`Over by Rs.${diff.toFixed(2)}`:`Remaining: Rs.${Math.abs(diff).toFixed(2)}`;
     document.getElementById('chargeBtn').disabled=true;
   }
 }
@@ -1152,7 +1144,7 @@ function renderHolds(){
     const sub = h.cart.reduce((s,x)=>s+x.price*x.qty, 0);
     const chip = document.createElement('div');
     chip.className = 'hold-chip';
-    chip.innerHTML = `${h.label} · £${(sub*1.2).toFixed(2)} <span class="hold-chip-x" onclick="removeHold(${i},event)">✕</span>`;
+    chip.innerHTML = `${h.label} · Rs.${sub.toFixed(2)} <span class="hold-chip-x" onclick="removeHold(${i},event)">✕</span>`;
     chip.onclick = (e)=>{if(e.target.classList.contains('hold-chip-x'))return;recallHold(i);};
     strip.insertBefore(chip, none);
   });
@@ -1180,7 +1172,7 @@ function showCardModal(total){
     `<div style="text-align:center">
       <div class="success-circle" style="background:#eff6ff;border-color:#bfdbfe">💳</div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Tap, insert or swipe card</p>
-      <div style="font-size:30px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace">£${total.toFixed(2)}</div>
+      <div style="font-size:30px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace">Rs.${total.toFixed(2)}</div>
       <p style="font-size:11px;color:var(--text3);margin-top:5px">Terminal is ready</p>
     </div>`,
     'Approve',
@@ -1196,15 +1188,15 @@ function processPayment(total, method, change){
   showReceiptModal(total,method,change);
 }
 function showReceiptModal(total,method,change){
-  const lines = cart.map(i=>`<div class="receipt-line"><span>${i.em} ${i.name} ×${i.qty}</span><span>£${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
-  const ml = {card:'💳 Card',cash:'💵 Cash',tap:'📱 Tap',split:'⚡ Split'}[method];
+  const lines = cart.map(i=>`<div class="receipt-line"><span>${i.em} ${i.name} ×${i.qty}</span><span>Rs.${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
+  const ml = {card:'💳 Card',cash:'💵 Cash',split:'⚡ Split'}[method];
   openModal(
     `<div class="success-circle">✓</div>
     <div style="text-align:center;margin-bottom:10px">
-      <div style="font-size:28px;font-weight:700;color:var(--g);font-family:'JetBrains Mono',monospace">£${total.toFixed(2)}</div>
+      <div style="font-size:28px;font-weight:700;color:var(--g);font-family:'JetBrains Mono',monospace">Rs.${total.toFixed(2)}</div>
       <div style="font-size:11px;color:var(--text3);margin-top:3px">${ml}</div>
     </div>
-    <div class="receipt-box">${lines}<div class="receipt-total"><span>Total (incl. VAT)</span><span>£${total.toFixed(2)}</span></div>${change!=null&&change>0?`<div class="receipt-change">Change: £${change.toFixed(2)}</div>`:''}</div>`,
+    <div class="receipt-box">${lines}<div class="receipt-total"><span>Total</span><span>Rs.${total.toFixed(2)}</span></div>${change!=null&&change>0?`<div class="receipt-change">Change: Rs.${change.toFixed(2)}</div>`:''}</div>`,
     'New sale',
     'Print receipt',
     ()=>{ closeModal(); clearCart(); renderGrid(); toast('Sale complete'); },
@@ -1301,7 +1293,7 @@ function renderInvStats(){
   const total=products.length,val=products.reduce((s,p)=>s+p.price*p.stock,0),low=products.filter(p=>p.stock>0&&p.stock<=p.low).length,out=products.filter(p=>p.stock===0).length;
   document.getElementById('invStats').innerHTML=`
     <div class="inv-stat"><div class="inv-stat-label">Products</div><div class="inv-stat-val">${total}</div><div class="inv-stat-sub">${CATEGORIES.length-1} categories</div></div>
-    <div class="inv-stat"><div class="inv-stat-label">Stock value</div><div class="inv-stat-val">£${val.toFixed(0)}</div><div class="inv-stat-sub">At retail price</div></div>
+    <div class="inv-stat"><div class="inv-stat-label">Stock value</div><div class="inv-stat-val">Rs.${val.toFixed(0)}</div><div class="inv-stat-sub">At retail price</div></div>
     <div class="inv-stat"><div class="inv-stat-label" style="color:var(--amber)">Low stock</div><div class="inv-stat-val" style="color:var(--amber)">${low}</div><div class="inv-stat-sub">Need restocking</div></div>
     <div class="inv-stat"><div class="inv-stat-label" style="color:var(--red)">Out of stock</div><div class="inv-stat-val" style="color:var(--red)">${out}</div><div class="inv-stat-sub">Unavailable</div></div>
   `;
@@ -1324,7 +1316,7 @@ function showAddProduct(){
       <div><div class="form-label">Age restricted?</div><select class="form-select" id="np-age"><option value="no">No</option><option value="yes">Yes (18+)</option></select></div>
     </div>
     <div class="form-2">
-      <div><div class="form-label">Price (£)</div><input class="form-input" type="number" id="np-price" min="0" step="0.01" placeholder="0.00"></div>
+      <div><div class="form-label">Price (Rs.)</div><input class="form-input" type="number" id="np-price" min="0" step="0.01" placeholder="0.00"></div>
       <div><div class="form-label">Stock</div><input class="form-input" type="number" id="np-stock" min="0" placeholder="0"></div>
     </div>
     <div class="form-label">Category</div><select class="form-select" id="np-cat">${CATEGORIES.filter(c=>c!=='All').map(c=>`<option>${c}</option>`).join('')}</select>`,
@@ -1358,10 +1350,10 @@ function renderReports(){
   const rev=transactions.filter(t=>t.type==='sale').reduce((s,t)=>s+t.total,0)*(f*0.7+Math.random()*f*0.5);
   const cnt=Math.floor(transactions.length*f*0.5+f*4),avg=rev/Math.max(cnt,1),refunds=transactions.filter(t=>t.type==='refund').reduce((s,t)=>s+t.total,0)*f*0.08;
   document.getElementById('kpiGrid').innerHTML=`
-    <div class="kpi-card"><div class="kpi-label">Revenue</div><div class="kpi-val">£${rev.toFixed(0)}</div><div class="kpi-change up">↑ 11% vs prior ${period}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Revenue</div><div class="kpi-val">Rs.${rev.toFixed(0)}</div><div class="kpi-change up">↑ 11% vs prior ${period}</div></div>
     <div class="kpi-card"><div class="kpi-label">Transactions</div><div class="kpi-val">${cnt}</div><div class="kpi-change up">↑ 7% vs prior ${period}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Avg order</div><div class="kpi-val">£${avg.toFixed(2)}</div><div class="kpi-change dn">↓ 2% vs prior ${period}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Refunds</div><div class="kpi-val">£${refunds.toFixed(2)}</div><div class="kpi-change dn">↑ 1 this ${period}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg order</div><div class="kpi-val">Rs.${avg.toFixed(2)}</div><div class="kpi-change dn">↓ 2% vs prior ${period}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Refunds</div><div class="kpi-val">Rs.${refunds.toFixed(2)}</div><div class="kpi-change dn">↑ 1 this ${period}</div></div>
   `;
   const hrs=['9am','10','11','12','1pm','2','3','4','5','6'],vals=hrs.map(()=>Math.floor(40+Math.random()*200)*f/4),mx=Math.max(...vals);
   document.getElementById('barChart').innerHTML=vals.map(v=>`<div class="bar-col"><div class="bar-fill" style="height:${Math.max(3,(v/mx)*100)}%"></div></div>`).join('');
@@ -1375,7 +1367,7 @@ function renderReports(){
       <span class="top-em">${it.em}</span>
       <span class="top-name">${it.name}</span>
       <div class="top-bar-bg"><div class="top-bar-fill" style="width:${(it.rev/mxR)*100}%"></div></div>
-      <span class="top-rev">£${it.rev.toFixed(0)}</span>
+      <span class="top-rev">Rs.${it.rev.toFixed(0)}</span>
     </div>`).join('');
   document.getElementById('txList').innerHTML=transactions.slice(0,10).map(tx=>`
     <div class="tx-row">
@@ -1384,7 +1376,7 @@ function renderReports(){
         <div class="tx-ref">${tx.ref}</div>
         <div class="tx-meta">${tx.items.length} item${tx.items.length!==1?'s':''} · ${tx.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>
-      <span class="tx-amt ${tx.type==='refund'?'refund':''}">${tx.type==='refund'?'-':''}£${tx.total.toFixed(2)}</span>
+      <span class="tx-amt ${tx.type==='refund'?'refund':''}">${tx.type==='refund'?'-':''}Rs.${tx.total.toFixed(2)}</span>
       <span class="method-tag ${tx.method}">${tx.method}</span>
       ${tx.type==='sale'?`<button class="refund-row-btn" onclick="showRefund('${tx.ref}')">Refund</button>`:''}
     </div>`).join('');
@@ -1394,13 +1386,13 @@ function showRefund(ref){
   if(!tx) return;
   openModal(
     `<p style="font-size:11px;color:var(--text2);margin-bottom:8px">Select items to refund from ${tx.ref}:</p>
-    ${tx.items.map((item,i)=>`<div class="refund-item-row"><label><input type="checkbox" id="ri${i}" checked>${item.em} ${item.name} ×${item.qty}</label><span style="font-size:12px;font-weight:700">£${(item.price*item.qty).toFixed(2)}</span></div>`).join('')}
+    ${tx.items.map((item,i)=>`<div class="refund-item-row"><label><input type="checkbox" id="ri${i}" checked>${item.em} ${item.name} ×${item.qty}</label><span style="font-size:12px;font-weight:700">Rs.${(item.price*item.qty).toFixed(2)}</span></div>`).join('')}
     <div style="margin-top:10px"><div class="form-label">Reason</div><select class="form-select"><option>Customer return</option><option>Defective item</option><option>Wrong item</option><option>Other</option></select></div>`,
     'Process refund','Cancel',
     ()=>{
       const amt=tx.items.filter((_,i)=>document.getElementById('ri'+i)?.checked).reduce((s,x)=>s+x.price*x.qty,0)*1.2;
       transactions.unshift({ref:tx.ref+'R',type:'refund',method:tx.method,total:parseFloat(amt.toFixed(2)),items:tx.items,time:new Date()});
-      closeModal();renderReports();toast('Refund of £'+amt.toFixed(2)+' processed');
+      closeModal();renderReports();toast('Refund of Rs.'+amt.toFixed(2)+' processed');
     },
     closeModal,
     'Process refund — '+tx.ref
