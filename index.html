@@ -923,9 +923,17 @@ tbody tr:hover{background:var(--surface2)}
 // ── SUPABASE ──────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://mtqnzxvrhpgbedmonsge.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10cW56eHZyaHBnYmVkbW9uc2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMjQ2OTYsImV4cCI6MjA5MzgwMDY5Nn0.hlMFDWi2gSnqvmTzTH2EUSSmedNgQ_KcO2dPEIfS1cE';
-const _sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+let _sb = null;
+try { _sb = window.supabase?.createClient(SUPA_URL, SUPA_KEY) || null; } catch(e){}
+
+// Hard safety net — overlay always hides within 10s no matter what
+setTimeout(()=>{
+  const ov=document.getElementById('dbOverlay');
+  if(ov&&ov.style.display!=='none'){ov.style.display='none';initCats();renderGrid();renderCart();}
+},10000);
 
 async function dbOp(table, method, data, matchField, matchVal){
+  if(!_sb) return;
   try {
     if(method==='insert') return await _sb.from(table).insert(data);
     if(method==='update') return await _sb.from(table).update(data).eq(matchField, matchVal);
@@ -2116,6 +2124,11 @@ function toast(msg){
 
 // ── INIT DB ──
 async function initDB(){
+  if(!_sb){
+    document.getElementById('dbOverlay').style.display='none';
+    initCats();renderGrid();renderCart();
+    return;
+  }
   const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
   try {
     const [pRes, txRes, custRes, credRes, quotRes, invRes] = await Promise.race([
