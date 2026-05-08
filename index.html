@@ -2116,14 +2116,18 @@ function toast(msg){
 
 // ── INIT DB ──
 async function initDB(){
+  const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
   try {
-    const [pRes, txRes, custRes, credRes, quotRes, invRes] = await Promise.all([
-      _sb.from('products').select('*').order('id'),
-      _sb.from('transactions').select('*').order('created_at', {ascending:false}),
-      _sb.from('customers').select('*').order('id'),
-      _sb.from('credit_accounts').select('*').order('id'),
-      _sb.from('quotations').select('*').order('created_at', {ascending:false}),
-      _sb.from('invoices').select('*').order('created_at', {ascending:false}),
+    const [pRes, txRes, custRes, credRes, quotRes, invRes] = await Promise.race([
+      Promise.all([
+        _sb.from('products').select('*').order('id'),
+        _sb.from('transactions').select('*').order('created_at', {ascending:false}),
+        _sb.from('customers').select('*').order('id'),
+        _sb.from('credit_accounts').select('*').order('id'),
+        _sb.from('quotations').select('*').order('created_at', {ascending:false}),
+        _sb.from('invoices').select('*').order('created_at', {ascending:false}),
+      ]),
+      timeout,
     ]);
 
     if(pRes.data) products = pRes.data.map(x=>({
@@ -2185,7 +2189,8 @@ async function initDB(){
 
   } catch(e){
     console.error('initDB failed:', e);
-    toast('Warning: running in offline mode');
+    const msg = e.message==='timeout' ? 'DB timeout — check Supabase is active. Running offline.' : 'DB error — running offline.';
+    toast(msg);
   } finally {
     document.getElementById('dbOverlay').style.display='none';
     initCats(); renderGrid(); renderCart();
