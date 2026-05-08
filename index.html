@@ -913,11 +913,6 @@ tbody tr:hover{background:var(--surface2)}
 </div><!-- end shell -->
 
 <div class="toast" id="toastEl"></div>
-<div id="dbOverlay" style="position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px">
-  <div style="width:36px;height:36px;border:3px solid var(--g4);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite"></div>
-  <div style="font-size:13px;font-weight:600;color:var(--text2)">Connecting to database…</div>
-</div>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <script>
 // ── SUPABASE ──────────────────────────────────────────────────────────────
@@ -925,12 +920,6 @@ const SUPA_URL = 'https://mtqnzxvrhpgbedmonsge.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10cW56eHZyaHBnYmVkbW9uc2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMjQ2OTYsImV4cCI6MjA5MzgwMDY5Nn0.hlMFDWi2gSnqvmTzTH2EUSSmedNgQ_KcO2dPEIfS1cE';
 let _sb = null;
 try { _sb = window.supabase?.createClient(SUPA_URL, SUPA_KEY) || null; } catch(e){}
-
-// Hard safety net — overlay always hides within 10s no matter what
-setTimeout(()=>{
-  const ov=document.getElementById('dbOverlay');
-  if(ov&&ov.style.display!=='none'){ov.style.display='none';initCats();renderGrid();renderCart();}
-},10000);
 
 async function dbOp(table, method, data, matchField, matchVal){
   if(!_sb) return;
@@ -2122,52 +2111,47 @@ function toast(msg){
   clearTimeout(_tt);_tt=setTimeout(()=>el.style.display='none',2400);
 }
 
-// ── INIT DB ──
+// ── INIT DB (background — page loads first, data syncs after) ──
 async function initDB(){
-  if(!_sb){
-    document.getElementById('dbOverlay').style.display='none';
-    initCats();renderGrid();renderCart();
-    return;
-  }
-  const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
+  if(!_sb) return;
   try {
-    const [pRes, txRes, custRes, credRes, quotRes, invRes] = await Promise.race([
-      Promise.all([
-        _sb.from('products').select('*').order('id'),
-        _sb.from('transactions').select('*').order('created_at', {ascending:false}),
-        _sb.from('customers').select('*').order('id'),
-        _sb.from('credit_accounts').select('*').order('id'),
-        _sb.from('quotations').select('*').order('created_at', {ascending:false}),
-        _sb.from('invoices').select('*').order('created_at', {ascending:false}),
-      ]),
-      timeout,
+    const [pRes, txRes, custRes, credRes, quotRes, invRes] = await Promise.all([
+      _sb.from('products').select('*').order('id'),
+      _sb.from('transactions').select('*').order('created_at', {ascending:false}),
+      _sb.from('customers').select('*').order('id'),
+      _sb.from('credit_accounts').select('*').order('id'),
+      _sb.from('quotations').select('*').order('created_at', {ascending:false}),
+      _sb.from('invoices').select('*').order('created_at', {ascending:false}),
     ]);
 
-    if(pRes.data) products = pRes.data.map(x=>({
-      id: x.id, name: x.name, em: x.em||'📦', cat: x.cat,
-      price: parseFloat(x.price||0), stock: parseInt(x.stock||0),
-      low: parseInt(x.low||5), age: !!x.age,
-    }));
+    if(pRes.data?.length) {
+      products = pRes.data.map(x=>({
+        id: x.id, name: x.name, em: x.em||'📦', cat: x.cat,
+        price: parseFloat(x.price||0), stock: parseInt(x.stock||0),
+        low: parseInt(x.low||5), age: !!x.age,
+      }));
+      renderGrid(); renderInvStats();
+    }
 
-    if(txRes.data) {
+    if(txRes.data?.length) {
       transactions = txRes.data.map(x=>({
         ref: x.ref, type: x.type, method: x.method,
         total: parseFloat(x.total||0),
-        items: Array.isArray(x.items) ? x.items : (x.items ? JSON.parse(x.items) : []),
+        items: Array.isArray(x.items) ? x.items : [],
         time: new Date(x.created_at),
       }));
-      const maxOrd = transactions.reduce((m,t)=>{
-        const n=parseInt((t.ref||'').replace(/\D/g,''))||0; return Math.max(m,n);
-      },0);
+      const maxOrd = transactions.reduce((m,t)=>{const n=parseInt((t.ref||'').replace(/\D/g,''))||0;return Math.max(m,n);},0);
       if(maxOrd>0) orderNum = maxOrd+1;
     }
 
-    if(custRes.data) customers = custRes.data.map(x=>({
-      id: x.id, name: x.name, email: x.email||'', phone: x.phone||'',
-      joined: new Date(x.created_at), creditBalance: parseFloat(x.credit_balance||0),
-    }));
+    if(custRes.data?.length) {
+      customers = custRes.data.map(x=>({
+        id: x.id, name: x.name, email: x.email||'', phone: x.phone||'',
+        joined: new Date(x.created_at), creditBalance: parseFloat(x.credit_balance||0),
+      }));
+    }
 
-    if(credRes.data) {
+    if(credRes.data?.length) {
       creditAccounts = credRes.data.map(x=>({
         id: x.id, name: x.name,
         limit: parseFloat(x.credit_limit||100),
@@ -2177,10 +2161,10 @@ async function initDB(){
       nextCreditId = creditAccounts.reduce((m,a)=>Math.max(m,a.id),0)+1;
     }
 
-    if(quotRes.data) {
+    if(quotRes.data?.length) {
       quotations = quotRes.data.map(x=>({
         id: x.id, customer: x.customer,
-        items: Array.isArray(x.items) ? x.items : (x.items ? JSON.parse(x.items) : []),
+        items: Array.isArray(x.items) ? x.items : [],
         total: parseFloat(x.total||0), status: x.status||'Draft',
         date: new Date(x.created_at),
       }));
@@ -2188,10 +2172,10 @@ async function initDB(){
       if(maxQ>0) nextQuotId = maxQ+1;
     }
 
-    if(invRes.data) {
+    if(invRes.data?.length) {
       invoicesData = invRes.data.map(x=>({
         id: x.id, customer: x.customer,
-        items: Array.isArray(x.items) ? x.items : (x.items ? JSON.parse(x.items) : []),
+        items: Array.isArray(x.items) ? x.items : [],
         total: parseFloat(x.total||0), status: x.status||'Pending',
         date: new Date(x.created_at),
         due: x.due_date ? new Date(x.due_date) : new Date(Date.now()+14*864e5),
@@ -2200,18 +2184,12 @@ async function initDB(){
       if(maxI>0) nextInvId = maxI+1;
     }
 
-  } catch(e){
-    console.error('initDB failed:', e);
-    const msg = e.message==='timeout' ? 'DB timeout — check Supabase is active. Running offline.' : 'DB error — running offline.';
-    toast(msg);
-  } finally {
-    document.getElementById('dbOverlay').style.display='none';
-    initCats(); renderGrid(); renderCart();
-  }
+  } catch(e){ console.warn('DB sync failed, running offline:', e); }
 }
 
 // ── INIT ──
-initDB();
+initCats(); renderGrid(); renderCart();
+initDB(); // runs in background, refreshes views when data arrives
 </script>
 </body>
 </html>
