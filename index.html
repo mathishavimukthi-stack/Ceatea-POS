@@ -500,6 +500,26 @@ tbody tr:hover{background:var(--surface2)}
 .cust-name{font-size:12px;font-weight:600;color:var(--text)}
 .cust-meta{font-size:10px;color:var(--text3);margin-top:1px}
 .audit-row{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)}
+/* ── WRITE-OFF ── */
+.wo-search-wrap{position:relative;flex:1}
+.wo-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-sm);box-shadow:var(--shadow-md);z-index:50;max-height:220px;overflow-y:auto}
+.wo-result-item{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;transition:.1s;font-size:13px}
+.wo-result-item:hover{background:var(--surface2)}
+.wo-result-item+.wo-result-item{border-top:1px solid var(--border)}
+.wo-product-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.wo-product-em{font-size:28px;flex-shrink:0}
+.wo-product-info{flex:1}
+.wo-product-name{font-size:14px;font-weight:700;color:var(--text)}
+.wo-product-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.wo-stock-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);text-align:right}
+.wo-stock-lbl{font-size:10px;color:var(--text3);text-align:right;font-weight:600}
+.wo-reasons{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.wo-reason-btn{padding:7px 16px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;background:var(--surface)}
+.wo-reason-btn:hover:not(.on){background:var(--surface2);border-color:var(--border2)}
+.wo-reason-btn.on{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.wo-confirm-btn{width:100%;padding:11px;background:var(--red);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;margin-top:4px}
+.wo-confirm-btn:hover{background:#c62828}
+.wo-confirm-btn:disabled{opacity:.4;cursor:default}
 .audit-row:last-child{border-bottom:none}
 .audit-ic{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px}
 .audit-ic.sale{background:var(--g3)}
@@ -574,6 +594,9 @@ tbody tr:hover{background:var(--surface2)}
           <div class="sb-section-label">Inventory</div>
           <div class="sb-item" id="sb-products" onclick="sideNav('products')">
             <span class="sb-item-icon">📦</span>Products
+          </div>
+          <div class="sb-item" id="sb-writeoff" onclick="sideNav('writeoff')">
+            <span class="sb-item-icon">🗑️</span>Write-Off
           </div>
         </div>
         <!-- People -->
@@ -781,6 +804,65 @@ tbody tr:hover{background:var(--surface2)}
               </thead>
               <tbody id="invTbody"></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- WRITE-OFF VIEW -->
+      <div class="view page-view" id="vwriteoff">
+        <div class="page-header">
+          <h2>Write-Off</h2>
+          <span style="font-size:12px;color:var(--text3);margin-left:4px">Remove expired, damaged or unusable stock</span>
+        </div>
+        <div class="page-body">
+          <div class="page-card" style="max-width:520px">
+            <div class="page-card-title">Select product</div>
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+              <div class="wo-search-wrap">
+                <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text3);fill:none;pointer-events:none" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input class="form-input" style="padding-left:30px" type="text" id="woSearch" placeholder="Search by name or barcode…" oninput="woSearchProducts(this.value)" autocomplete="off">
+                <div id="woResults" class="wo-results" style="display:none"></div>
+              </div>
+              <button class="scan-btn" id="woScanBtn" onclick="toggleWoScanner()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="3" height="10"/><rect x="7" y="5" width="1" height="14"/><rect x="10" y="7" width="2" height="10"/><rect x="14" y="5" width="1" height="14"/><rect x="17" y="7" width="3" height="10"/></svg>
+                Scan
+              </button>
+            </div>
+            <div id="woScanArea" style="display:none;margin-bottom:14px">
+              <div id="barcodeScanAreaWO" class="barcode-row" style="display:block">
+                <video id="barcodeVideoWO" autoplay playsinline muted style="width:100%;border-radius:var(--r-sm);max-height:180px;display:block;background:#000"></video>
+                <div id="barcodeScanLineWO" style="display:block;height:2px;background:rgba(22,169,126,.8);animation:scanline 1.5s ease-in-out infinite;margin-top:-2px"></div>
+                <div id="barcodeScanStatusWO" style="font-size:11px;color:var(--text3);text-align:center;padding:5px;background:var(--surface2);border-radius:0 0 var(--r-sm) var(--r-sm)">Align barcode in view…</div>
+              </div>
+            </div>
+
+            <div id="woProductCard" style="display:none"></div>
+
+            <div id="woForm" style="display:none">
+              <div class="form-label">Reason</div>
+              <div class="wo-reasons" id="woReasons">
+                <button class="wo-reason-btn on" onclick="selectWoReason('Expired',this)">Expired</button>
+                <button class="wo-reason-btn" onclick="selectWoReason('Damaged',this)">Damaged</button>
+                <button class="wo-reason-btn" onclick="selectWoReason('Theft',this)">Theft</button>
+                <button class="wo-reason-btn" onclick="selectWoReason('Other',this)">Other</button>
+              </div>
+              <div id="woExpiredDetail" style="margin-bottom:14px">
+                <div class="form-label">Expiry date</div>
+                <input class="form-input" type="date" id="woExpDate">
+              </div>
+              <div id="woOtherDetail" style="display:none;margin-bottom:14px">
+                <div class="form-label">Comment</div>
+                <input class="form-input" type="text" id="woComment" placeholder="Describe the reason…">
+              </div>
+              <div class="form-label">Quantity to write off</div>
+              <input class="form-input" type="number" id="woQty" min="1" placeholder="0" style="margin-bottom:16px">
+              <button class="wo-confirm-btn" onclick="confirmWriteOff()">Write Off Stock</button>
+            </div>
+          </div>
+
+          <div class="page-card">
+            <div class="page-card-title">Write-Off History</div>
+            <div id="woHistTable"></div>
           </div>
         </div>
       </div>
@@ -1093,13 +1175,14 @@ const VIEW_MAP = {
   sell:'pos',products:'inv',reports:'rep',dashboard:'dash',
   quotations:'quot',invoices:'invoices',history:'hist',
   returns:'returns',customers:'cust',credit:'credit',
-  audit:'audit',settings:'settings'
+  audit:'audit',settings:'settings',writeoff:'writeoff'
 };
 const SB_MAP = {
   sell:'sb-sell',products:'sb-products',reports:'sb-reports',
   dashboard:'sb-dash',quotations:'sb-quot',invoices:'sb-inv',
   history:'sb-hist',returns:'sb-ret',customers:'sb-cust',
-  credit:'sb-cred',audit:'sb-audit',settings:'sb-settings'
+  credit:'sb-cred',audit:'sb-audit',settings:'sb-settings',
+  writeoff:'sb-writeoff'
 };
 function sideNav(section){
   if(!canAccess(section)){toast('Access restricted');return;}
@@ -1123,6 +1206,7 @@ function switchView(v){
   if(v==='cust')renderCustomers();
   if(v==='credit')renderCredit();
   if(v==='audit')renderAuditLog();
+  if(v==='writeoff')renderWriteOff();
 }
 
 // ── RIGHT PANEL TABS ──
@@ -1942,6 +2026,192 @@ function showRefund(ref){
   setTimeout(()=>{const btn=document.getElementById('mConfirm');if(btn)btn.style.background='var(--red)';},10);
 }
 
+// ── WRITE-OFF ──
+let writeOffs = [];
+let _woSelected = null;
+let _woReason = null;
+let _woStream = null;
+let _woScanning = false;
+
+function renderWriteOff(){
+  renderWoHistory();
+  // reset form state on view load
+  _woSelected = null;
+  _woReason = null;
+  const card = document.getElementById('woProductCard');
+  const form = document.getElementById('woForm');
+  const res = document.getElementById('woResults');
+  if(card) card.style.display = 'none';
+  if(form) form.style.display = 'none';
+  if(res){ res.style.display = 'none'; res.innerHTML = ''; }
+  const si = document.getElementById('woSearch');
+  if(si) si.value = '';
+  stopWoScanner();
+}
+
+function woSearchProducts(q){
+  const res = document.getElementById('woResults');
+  if(!q.trim()){ res.style.display='none'; res.innerHTML=''; return; }
+  const matches = products.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    (p.barcode && p.barcode.toLowerCase().includes(q.toLowerCase()))
+  ).slice(0, 8);
+  if(!matches.length){ res.style.display='none'; return; }
+  res.innerHTML = matches.map(p =>
+    `<div class="wo-result-item" onclick="woSelectProduct(${p.id})">
+      <span>${p.em||'📦'}</span>
+      <span style="flex:1">${p.name}</span>
+      <span style="color:var(--text3);font-size:11px">Stock: ${p.stock}</span>
+    </div>`
+  ).join('');
+  res.style.display = 'block';
+}
+
+function woSelectProduct(id){
+  _woSelected = products.find(p => p.id === id);
+  if(!_woSelected) return;
+  document.getElementById('woResults').style.display = 'none';
+  document.getElementById('woSearch').value = _woSelected.name;
+  const card = document.getElementById('woProductCard');
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-size:28px">${_woSelected.em||'📦'}</div>
+      <div>
+        <div style="font-weight:700;font-size:14px">${_woSelected.name}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">Current stock: <strong style="color:var(--text)">${_woSelected.stock} ${_woSelected.unit||'count'}</strong></div>
+      </div>
+    </div>`;
+  card.style.display = 'block';
+  _woReason = null;
+  document.getElementById('woExpiredDetail').style.display = 'none';
+  document.getElementById('woOtherDetail').style.display = 'none';
+  document.querySelectorAll('.wo-reason-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('woQty').value = '1';
+  document.getElementById('woForm').style.display = 'block';
+  stopWoScanner();
+}
+
+function selectWoReason(reason, el){
+  _woReason = reason;
+  document.querySelectorAll('.wo-reason-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('woExpiredDetail').style.display = reason === 'Expired' ? 'block' : 'none';
+  document.getElementById('woOtherDetail').style.display = reason === 'Other' ? 'block' : 'none';
+}
+
+function toggleWoScanner(){
+  const btn = document.getElementById('woScanBtn');
+  const area = document.getElementById('woScanArea');
+  if(_woScanning){ stopWoScanner(); return; }
+  if(!window.BarcodeDetector){ toast('Barcode scanner not supported in this browser'); return; }
+  navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } }).then(stream => {
+    _woStream = stream;
+    _woScanning = true;
+    btn.classList.add('active');
+    btn.innerHTML = '⏹ Stop';
+    area.style.display = 'block';
+    const vid = document.getElementById('barcodeVideoWO');
+    vid.srcObject = stream;
+    vid.play();
+    const detector = new BarcodeDetector({ formats:['ean_13','ean_8','code_128','code_39','upc_a','upc_e','qr_code'] });
+    const tick = async () => {
+      if(!_woScanning) return;
+      try {
+        const codes = await detector.detect(vid);
+        if(codes.length){
+          const val = codes[0].rawValue;
+          stopWoScanner();
+          document.getElementById('woSearch').value = val;
+          woSearchProducts(val);
+          const match = products.find(p => p.barcode === val);
+          if(match) woSelectProduct(match.id);
+          return;
+        }
+      } catch(e){}
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }).catch(() => toast('Camera access denied'));
+}
+
+function stopWoScanner(){
+  _woScanning = false;
+  if(_woStream){ _woStream.getTracks().forEach(t => t.stop()); _woStream = null; }
+  const btn = document.getElementById('woScanBtn');
+  const area = document.getElementById('woScanArea');
+  if(btn){ btn.classList.remove('active'); btn.innerHTML = '📷 Scan'; }
+  if(area) area.style.display = 'none';
+}
+
+function confirmWriteOff(){
+  if(!_woSelected){ toast('Select a product first'); return; }
+  if(!_woReason){ toast('Select a reason'); return; }
+  const qty = parseInt(document.getElementById('woQty').value) || 0;
+  if(qty <= 0){ toast('Enter a valid quantity'); return; }
+  if(qty > _woSelected.stock){ toast('Quantity exceeds current stock'); return; }
+
+  let detail = '';
+  if(_woReason === 'Expired'){
+    const d = document.getElementById('woExpDate').value;
+    detail = d ? `Expiry: ${d}` : '';
+  } else if(_woReason === 'Other'){
+    detail = document.getElementById('woComment').value.trim();
+  }
+
+  // deduct stock
+  _woSelected.stock -= qty;
+  const pid = _woSelected.id;
+  dbOp('products','update',{ stock: _woSelected.stock },'id', pid);
+
+  // log write-off
+  const entry = {
+    id: Date.now(),
+    product: _woSelected.name,
+    em: _woSelected.em || '📦',
+    qty,
+    reason: _woReason,
+    detail,
+    time: new Date()
+  };
+  writeOffs.unshift(entry);
+  addAudit('stock', `Write-off: ${qty}x ${_woSelected.name} (${_woReason})`);
+
+  renderInvStats();
+  renderWoHistory();
+  toast(`✅ ${qty}x ${_woSelected.name} written off`);
+
+  // reset
+  _woSelected = null;
+  _woReason = null;
+  document.getElementById('woProductCard').style.display = 'none';
+  document.getElementById('woForm').style.display = 'none';
+  document.getElementById('woSearch').value = '';
+}
+
+function renderWoHistory(){
+  const el = document.getElementById('woHistTable');
+  if(!el) return;
+  if(!writeOffs.length){
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">No write-offs recorded yet</div>';
+    return;
+  }
+  el.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Product</th><th>Qty</th><th>Reason</th><th>Detail</th><th>Time</th>
+      </tr></thead>
+      <tbody>
+        ${writeOffs.map(w=>`<tr>
+          <td><span style="margin-right:6px">${w.em}</span>${w.product}</td>
+          <td style="font-weight:600;color:var(--red)">${w.qty}</td>
+          <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--amber-bg);color:var(--amber);font-weight:600">${w.reason}</span></td>
+          <td style="color:var(--text3);font-size:12px">${w.detail||'—'}</td>
+          <td style="color:var(--text3);font-size:11px;font-family:'JetBrains Mono',monospace">${w.time.toLocaleDateString('en-GB')} ${w.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
 // ── AUDIT LOG ──
 let auditLog = [];
 function addAudit(type, msg){
@@ -2498,7 +2768,7 @@ const USERS = {
   admin: { password:'admin123', role:'admin', name:'Admin' },
   staff: { password:'staff123', role:'staff', name:'Staff' },
 };
-const STAFF_ALLOWED = ['sell','products','history'];
+const STAFF_ALLOWED = ['sell','products','history','writeoff'];
 // Staff can add products (but not edit price / delete / export)
 let currentUser = null;
 
