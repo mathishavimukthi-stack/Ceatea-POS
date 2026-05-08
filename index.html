@@ -932,7 +932,40 @@ async function dbOp(table, method, data, matchField, matchVal){
 
 // ── DATA ──────────────────────────────────────────────────────────────────
 const CATEGORIES = ['All','Fruit & Veg','Dairy','Bakery','Meat','Drinks','Snacks'];
-let products = [];
+let products = [
+  {id:1,  name:'Bananas',           em:'🍌', cat:'Fruit & Veg', price:0.79, stock:48, low:10, age:false},
+  {id:2,  name:'Apples 6pk',        em:'🍎', cat:'Fruit & Veg', price:1.49, stock:32, low:10, age:false},
+  {id:3,  name:'Potatoes 1.5kg',    em:'🥔', cat:'Fruit & Veg', price:1.10, stock:20, low:8,  age:false},
+  {id:4,  name:'Carrots 500g',      em:'🥕', cat:'Fruit & Veg', price:0.65, stock:15, low:8,  age:false},
+  {id:5,  name:'Broccoli',          em:'🥦', cat:'Fruit & Veg', price:0.79, stock:3,  low:5,  age:false},
+  {id:6,  name:'Cherry Tomatoes',   em:'🍅', cat:'Fruit & Veg', price:1.35, stock:0,  low:5,  age:false},
+  {id:7,  name:'Avocado',           em:'🥑', cat:'Fruit & Veg', price:0.90, stock:12, low:5,  age:false},
+  {id:8,  name:'Baby Spinach 200g', em:'🥬', cat:'Fruit & Veg', price:1.20, stock:8,  low:5,  age:false},
+  {id:9,  name:'Milk 2L',           em:'🥛', cat:'Dairy',       price:1.55, stock:30, low:10, age:false},
+  {id:10, name:'Cheddar 400g',      em:'🧀', cat:'Dairy',       price:3.20, stock:4,  low:5,  age:false},
+  {id:11, name:'Butter 250g',       em:'🧈', cat:'Dairy',       price:1.85, stock:18, low:5,  age:false},
+  {id:12, name:'Greek Yoghurt',     em:'🍦', cat:'Dairy',       price:2.40, stock:12, low:5,  age:false},
+  {id:13, name:'Free Range Eggs 6', em:'🥚', cat:'Dairy',       price:2.10, stock:22, low:8,  age:false},
+  {id:14, name:'Oat Milk 1L',       em:'🥛', cat:'Dairy',       price:1.75, stock:2,  low:5,  age:false},
+  {id:15, name:'White Bread 800g',  em:'🍞', cat:'Bakery',      price:1.10, stock:14, low:5,  age:false},
+  {id:16, name:'Sourdough Loaf',    em:'🥖', cat:'Bakery',      price:2.50, stock:6,  low:3,  age:false},
+  {id:17, name:'Croissants 4pk',    em:'🥐', cat:'Bakery',      price:2.20, stock:9,  low:3,  age:false},
+  {id:18, name:'Bagels 4pk',        em:'🥯', cat:'Bakery',      price:1.80, stock:11, low:3,  age:false},
+  {id:19, name:'Chicken 500g',      em:'🍗', cat:'Meat',        price:4.50, stock:16, low:5,  age:false},
+  {id:20, name:'Minced Beef 500g',  em:'🥩', cat:'Meat',        price:4.20, stock:8,  low:5,  age:false},
+  {id:21, name:'Smoked Salmon',     em:'🐟', cat:'Meat',        price:3.80, stock:4,  low:3,  age:false},
+  {id:22, name:'Back Bacon 300g',   em:'🥓', cat:'Meat',        price:3.40, stock:12, low:5,  age:false},
+  {id:23, name:'Orange Juice 1L',   em:'🍊', cat:'Drinks',      price:1.65, stock:24, low:8,  age:false},
+  {id:24, name:'Sparkling Water',   em:'💧', cat:'Drinks',      price:0.75, stock:40, low:10, age:false},
+  {id:25, name:'Coca-Cola 6pk',     em:'🥤', cat:'Drinks',      price:5.50, stock:18, low:5,  age:false},
+  {id:26, name:'Lager 4pk',         em:'🍺', cat:'Drinks',      price:4.80, stock:10, low:5,  age:true},
+  {id:27, name:'Red Wine 75cl',     em:'🍷', cat:'Drinks',      price:7.50, stock:7,  low:3,  age:true},
+  {id:28, name:'Crisps',            em:'🍟', cat:'Snacks',      price:0.85, stock:50, low:15, age:false},
+  {id:29, name:'Chocolate Bar',     em:'🍫', cat:'Snacks',      price:1.10, stock:35, low:10, age:false},
+  {id:30, name:'Mixed Nuts 200g',   em:'🥜', cat:'Snacks',      price:3.20, stock:3,  low:5,  age:false},
+  {id:31, name:'Digestives 400g',   em:'🍪', cat:'Snacks',      price:1.45, stock:22, low:8,  age:false},
+  {id:32, name:'Tobacco Pouch 30g', em:'🚬', cat:'Snacks',      price:12.50,stock:5,  low:3,  age:true},
+];
 
 let cart = [], payMethod = 'card', orderNum = 1, holds = [], stockFilter = 'all', activeCat = 'All', discountPct = 0;
 let pluVal = '';
@@ -1916,7 +1949,11 @@ function newReturn(){
 }
 
 // ── CUSTOMERS ──
-let customers=[];
+let customers=[
+  {id:1,name:'Aisha Perera',email:'aisha@example.com',phone:'0771 234 567',joined:new Date('2025-01-10'),creditBalance:0},
+  {id:2,name:'Rohan Silva',email:'rohan@example.com',phone:'0712 345 678',joined:new Date('2025-02-14'),creditBalance:50},
+  {id:3,name:'Nimal Fernando',email:'nimal@example.com',phone:'0765 432 100',joined:new Date('2025-03-01'),creditBalance:0},
+];
 let selectedCustId=null;
 function renderCustomers(){
   const q=(document.getElementById('custSearch')?.value||'').toLowerCase();
@@ -2018,8 +2055,12 @@ function addCreditToCustomer(id){
 }
 
 // ── CREDIT ACCOUNTS ──
-let creditAccounts=[];
-let nextCreditId=1;
+let creditAccounts=[
+  {id:1,name:'Aisha Perera',limit:200,balance:0,history:[]},
+  {id:2,name:'Rohan Silva',limit:150,balance:50,history:[{type:'credit',amount:50,note:'Store credit',date:new Date('2025-04-10')}]},
+  {id:3,name:'Nimal Fernando',limit:100,balance:0,history:[]},
+];
+let nextCreditId=4;
 function renderCredit(){
   const total=creditAccounts.reduce((s,a)=>s+a.balance,0);
   const active=creditAccounts.filter(a=>a.balance>0).length;
