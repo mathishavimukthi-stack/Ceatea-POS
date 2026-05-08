@@ -77,6 +77,18 @@ input,select{font-family:inherit}
 .login-hint{margin-top:20px;padding:12px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text3);line-height:1.7}
 .login-hint strong{color:var(--text2)}
 
+/* ── BARCODE SCANNER ── */
+.barcode-row{display:flex;gap:6px;align-items:center}
+.barcode-row .form-input{flex:1}
+.scan-btn{display:flex;align-items:center;gap:5px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;font-weight:600;color:var(--text2);background:var(--surface2);cursor:pointer;white-space:nowrap;transition:.15s;flex-shrink:0}
+.scan-btn:hover{border-color:var(--g);color:var(--g);background:var(--g3)}
+.scan-btn.active{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+#barcodeScanArea{margin-top:8px;border-radius:var(--r-sm);overflow:hidden;border:1.5px solid var(--border);background:#000;position:relative}
+#barcodeVideo{width:100%;display:block;max-height:180px;object-fit:cover}
+#barcodeScanLine{position:absolute;left:0;right:0;height:2px;background:rgba(22,169,126,.8);animation:scanline 1.5s ease-in-out infinite}
+@keyframes scanline{0%,100%{top:20%}50%{top:80%}}
+#barcodeScanStatus{font-size:11px;color:var(--text3);text-align:center;padding:5px;background:#000;color:rgba(255,255,255,.6)}
+
 /* ── BODY ROW ── */
 .body-row{display:flex;overflow:hidden;height:calc(100vh - 52px)}
 
@@ -753,7 +765,7 @@ tbody tr:hover{background:var(--surface2)}
           <div class="inv-table-wrap">
             <table>
               <thead>
-                <tr><th>Product</th><th>Category</th><th>Price (Rs.)</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Product</th><th>Category</th><th>Unit</th><th>Price (Rs.)</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody id="invTbody"></tbody>
             </table>
@@ -1160,7 +1172,7 @@ function renderGrid(){
       ${p.age?'<div class="item-age-badge">18+</div>':''}
       <span class="item-emoji">${p.em}</span>
       <div class="item-name">${p.name}</div>
-      <div class="item-price">Rs.${p.price.toFixed(2)}</div>
+      <div class="item-price">Rs.${p.price.toFixed(2)}<span style="font-size:9px;font-weight:500;color:var(--text3);margin-left:2px">/${p.unit||'ea'}</span></div>
       <span class="item-stock ${sc}">${stxt}</span>
       ${inCart?`<div class="item-badge">${inCart.qty}</div>`:''}
     `;
@@ -1567,21 +1579,20 @@ function openModal(bodyHtml,confirmTxt,cancelTxt,onConfirm,onCancel,title=''){
   if(onConfirm) ov.querySelector('#mConfirm').onclick=onConfirm;
   ov.querySelector('#mCancel').onclick=onCancel||closeModal;
 }
-function closeModal(){if(_modal){_modal.remove();_modal=null;}}
+function closeModal(){stopBarcodeScanner();if(_modal){_modal.remove();_modal=null;}}
 
 // ── INVENTORY ──
 function renderInventory(q=''){
   const query=(q||'').toLowerCase();
   const list=products.filter(p=>!query||p.name.toLowerCase().includes(query)||String(p.id).includes(query));
   const isAdmin = currentUser?.role==='admin';
-  // Show/hide admin-only header buttons
-  const addBtn=document.querySelector('#vinv .btn-primary');
+  // Export CSV is admin-only; Add Product available to both
   const expBtn=document.querySelector('#vinv .btn-ghost');
-  if(addBtn) addBtn.style.display=isAdmin?'':'none';
   if(expBtn) expBtn.style.display=isAdmin?'':'none';
   document.getElementById('invTbody').innerHTML=list.map(p=>{
     const sc=p.stock===0?'out':p.stock<=p.low?'low':'ok';
     const sl=p.stock===0?'Out of stock':p.stock<=p.low?'Low stock':'In stock';
+    const unit=p.unit||'count';
     const priceCell = isAdmin
       ? `<input class="tbl-price" type="number" value="${p.price.toFixed(2)}" min="0" step="0.01" onchange="updatePrice(${p.id},this.value)">`
       : `<span style="font-family:'JetBrains Mono',monospace;font-weight:600">Rs.${p.price.toFixed(2)}</span>`;
@@ -1589,8 +1600,9 @@ function renderInventory(q=''){
       ? `<input class="tbl-input" type="number" value="${p.stock}" min="0" onchange="updateStock(${p.id},this.value)">`
       : `<span style="font-weight:600">${p.stock}</span>`;
     return `<tr>
-      <td><span style="margin-right:7px;font-size:15px">${p.em}</span><strong>${p.name}</strong>${p.age?' <span style="font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700">18+</span>':''}</td>
+      <td><span style="margin-right:7px;font-size:15px">${p.em}</span><strong>${p.name}</strong>${p.barcode?` <span style="font-size:9px;color:var(--text4);font-family:'JetBrains Mono',monospace">${p.barcode}</span>`:''}${p.age?' <span style="font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700">18+</span>':''}</td>
       <td><span style="font-size:11px;color:var(--text2)">${p.cat}</span></td>
+      <td><span style="font-size:12px;font-weight:600;color:var(--text2)">${unit}</span></td>
       <td>${priceCell}</td>
       <td>${stockCell}</td>
       <td><span class="stock-badge ${sc}">${sl}</span></td>
@@ -1622,7 +1634,8 @@ function restockModal(id){
 }
 function showAddProduct(){
   openModal(
-    `<div class="form-label">Product name</div><input class="form-input" type="text" id="np-name" placeholder="e.g. Strawberries">
+    `<div class="form-label">Product name</div>
+    <input class="form-input" type="text" id="np-name" placeholder="e.g. Strawberries">
     <div class="form-2">
       <div><div class="form-label">Emoji</div><input class="form-input" type="text" id="np-em" placeholder="🍓" maxlength="2"></div>
       <div><div class="form-label">Age restricted?</div><select class="form-select" id="np-age"><option value="no">No</option><option value="yes">Yes (18+)</option></select></div>
@@ -1631,25 +1644,103 @@ function showAddProduct(){
       <div><div class="form-label">Price (Rs.)</div><input class="form-input" type="number" id="np-price" min="0" step="0.01" placeholder="0.00"></div>
       <div><div class="form-label">Stock</div><input class="form-input" type="number" id="np-stock" min="0" placeholder="0"></div>
     </div>
-    <div class="form-label">Category</div><select class="form-select" id="np-cat">${CATEGORIES.filter(c=>c!=='All').map(c=>`<option>${c}</option>`).join('')}</select>`,
+    <div class="form-2">
+      <div>
+        <div class="form-label">Unit</div>
+        <select class="form-select" id="np-unit">
+          <option value="count">count (each)</option>
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="L">L</option>
+          <option value="ml">ml</option>
+        </select>
+      </div>
+      <div><div class="form-label">Category</div><select class="form-select" id="np-cat">${CATEGORIES.filter(c=>c!=='All').map(c=>`<option>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-label">Barcode</div>
+    <div class="barcode-row">
+      <input class="form-input" type="text" id="np-barcode" placeholder="e.g. 5901234123457 — or scan">
+      <button type="button" class="scan-btn" id="scanToggleBtn" onclick="toggleBarcodeScanner()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="3" height="10"/><rect x="7" y="5" width="1" height="14"/><rect x="10" y="7" width="2" height="10"/><rect x="14" y="5" width="1" height="14"/><rect x="17" y="7" width="3" height="10"/></svg>
+        Scan
+      </button>
+    </div>
+    <div id="barcodeScanArea" style="display:none">
+      <video id="barcodeVideo" autoplay playsinline muted></video>
+      <div id="barcodeScanLine"></div>
+      <div id="barcodeScanStatus">Align barcode in view…</div>
+    </div>`,
     'Add product','Cancel',
     async ()=>{
+      stopBarcodeScanner();
       const name=document.getElementById('np-name').value.trim();
       const em=document.getElementById('np-em').value||'📦';
       const price=parseFloat(document.getElementById('np-price').value)||0;
       const stock=parseInt(document.getElementById('np-stock').value)||0;
       const cat=document.getElementById('np-cat').value;
       const age=document.getElementById('np-age').value==='yes';
+      const unit=document.getElementById('np-unit').value||'count';
+      const barcode=document.getElementById('np-barcode').value.trim();
       if(!name){toast('Name is required');return;}
-      const newProd={name,em,cat,price,stock,low:5,age};
+      const newProd={name,em,cat,price,stock,low:5,age,unit,barcode};
       const {data:ins}=await _sb.from('products').insert(newProd).select().single().catch(()=>({data:null}));
       products.push({id:ins?.id||Date.now(),...newProd});
       closeModal();renderInventory('');renderGrid();toast(name+' added');
     },
-    closeModal,
+    ()=>{stopBarcodeScanner();closeModal();},
     'Add new product'
   );
 }
+// ── BARCODE SCANNER ──
+let _bcStream=null, _bcFrame=null, _bcScanning=false;
+async function toggleBarcodeScanner(){
+  if(_bcScanning){stopBarcodeScanner();return;}
+  const area=document.getElementById('barcodeScanArea');
+  const video=document.getElementById('barcodeVideo');
+  const btn=document.getElementById('scanToggleBtn');
+  const status=document.getElementById('barcodeScanStatus');
+  if(!area||!video) return;
+  if(!('BarcodeDetector' in window)){
+    toast('Camera scanning not supported — use Chrome or Edge');
+    return;
+  }
+  try {
+    _bcStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});
+    video.srcObject=_bcStream;
+    area.style.display='block';
+    btn.classList.add('active');
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Stop`;
+    _bcScanning=true;
+    const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf','qr_code']});
+    const detect=async()=>{
+      if(!_bcScanning) return;
+      try{
+        const codes=await detector.detect(video);
+        if(codes.length){
+          const val=codes[0].rawValue;
+          document.getElementById('np-barcode').value=val;
+          status.textContent='✓ Detected: '+val;
+          stopBarcodeScanner();
+          return;
+        }
+      }catch(e){}
+      _bcFrame=requestAnimationFrame(detect);
+    };
+    video.onloadedmetadata=()=>detect();
+  }catch(e){
+    toast('Camera access denied or unavailable');
+  }
+}
+function stopBarcodeScanner(){
+  _bcScanning=false;
+  if(_bcStream){_bcStream.getTracks().forEach(t=>t.stop());_bcStream=null;}
+  if(_bcFrame){cancelAnimationFrame(_bcFrame);_bcFrame=null;}
+  const area=document.getElementById('barcodeScanArea');
+  const btn=document.getElementById('scanToggleBtn');
+  if(area) area.style.display='none';
+  if(btn){btn.classList.remove('active');btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="3" height="10"/><rect x="7" y="5" width="1" height="14"/><rect x="10" y="7" width="2" height="10"/><rect x="14" y="5" width="1" height="14"/><rect x="17" y="7" width="3" height="10"/></svg> Scan`;}
+}
+
 function exportCSV(){
   const rows=[['Name','Category','Price','Stock','Age Restricted'],...products.map(p=>[p.name,p.cat,p.price.toFixed(2),p.stock,p.age?'Yes':'No'])];
   const csv=rows.map(r=>r.join(',')).join('\n');
@@ -2304,6 +2395,7 @@ const USERS = {
   staff: { password:'staff123', role:'staff', name:'Staff' },
 };
 const STAFF_ALLOWED = ['sell','products','history'];
+// Staff can add products (but not edit price / delete / export)
 let currentUser = null;
 
 function doLogin(){
