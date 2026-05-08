@@ -419,6 +419,31 @@ tbody tr:hover{background:var(--surface2)}
 .receipt-line{display:flex;justify-content:space-between;padding:2px 0;color:var(--text2)}
 .receipt-total{display:flex;justify-content:space-between;padding-top:8px;margin-top:6px;border-top:1.5px dashed var(--border2);font-weight:700;font-size:13px;color:var(--text)}
 .receipt-change{color:#15803d;font-size:12px;text-align:right;margin-top:4px;font-weight:700;font-family:'JetBrains Mono',monospace}
+/* ── RECEIPT SETTINGS & PREVIEW ── */
+.rs-toggle-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;width:100%}
+.rs-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:8px}
+.rs-toggle-row:nth-last-child(-n+2){border-bottom:none}
+.rs-toggle-label{font-size:12px;font-weight:500;color:var(--text2)}
+.rs-font-btns{display:flex;gap:4px}
+.rs-font-btn{padding:5px 14px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:.15s;background:var(--surface)}
+.rs-font-btn:hover{border-color:var(--g);color:var(--g)}
+.rs-font-btn.on{background:var(--g3);border-color:var(--g4);color:var(--g2)}
+.rcpt-preview-panel{position:sticky;top:0;width:250px;flex-shrink:0}
+.rcpt-preview-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding:0 4px}
+.rcpt-paper{background:#fff;border:1px solid var(--border);border-radius:6px;padding:18px 16px;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden;word-break:break-word}
+.rcpt-paper.sm{font-size:10px}.rcpt-paper.md{font-size:12px}.rcpt-paper.lg{font-size:14px}
+.rcpt-logo-img{max-width:80px;max-height:48px;display:block;margin:0 auto 6px}
+.rcpt-store-name{text-align:center;font-weight:700;letter-spacing:.5px;margin-bottom:2px;text-transform:uppercase}
+.rcpt-meta{text-align:center;color:#666;line-height:1.6;margin-bottom:2px}
+.rcpt-dash{border:none;border-top:1px dashed #bbb;margin:8px 0}
+.rcpt-item-row{display:flex;justify-content:space-between;gap:6px;padding:1px 0}
+.rcpt-item-row span:last-child{white-space:nowrap}
+.rcpt-subtotal-row{display:flex;justify-content:space-between;padding-top:6px;margin-top:6px;border-top:1px dashed #bbb;color:#555}
+.rcpt-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.1em;margin-top:4px;padding-top:4px}
+.rcpt-footer-text{text-align:center;color:#666;font-size:.88em;margin-top:8px;padding-top:8px;border-top:1px dashed #bbb;line-height:1.6}
+.logo-upload-area{border:1.5px dashed var(--border2);border-radius:var(--r-sm);padding:14px 12px;text-align:center;cursor:pointer;transition:.15s;background:var(--surface2);position:relative;flex:1}
+.logo-upload-area:hover{border-color:var(--g);background:var(--g3)}
+.logo-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .form-label{display:block;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
 .form-input{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surface2);color:var(--text);outline:none;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:10px}
 .form-input:focus{border-color:var(--g);background:#fff}
@@ -1022,22 +1047,86 @@ tbody tr:hover{background:var(--surface2)}
           <h2>Settings</h2>
           <button class="btn-primary" onclick="saveSettings()">Save changes</button>
         </div>
-        <div class="page-body">
-          <div class="settings-sec">
-            <div class="settings-sec-title">Store</div>
-            <div class="settings-row"><div class="settings-rl"><strong>Store name</strong><span>Shown on receipts</span></div><input class="settings-inp" type="text" id="cfg-name" value="Ceatea"></div>
-            <div class="settings-row"><div class="settings-rl"><strong>Currency symbol</strong><span>Prefix for all prices</span></div><input class="settings-inp" type="text" id="cfg-currency" value="Rs."></div>
-            <div class="settings-row"><div class="settings-rl"><strong>Tax rate (%)</strong><span>0 to disable</span></div><input class="settings-inp" type="number" id="cfg-tax" min="0" max="100" step="0.5" value="0"></div>
+        <div class="page-body" style="flex-direction:row;gap:20px;align-items:flex-start">
+          <!-- LEFT: form sections -->
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+
+            <!-- STORE -->
+            <div class="settings-sec">
+              <div class="settings-sec-title">Store</div>
+              <div class="settings-row"><div class="settings-rl"><strong>Store name</strong><span>Used on receipts and reports</span></div><input class="settings-inp" type="text" id="cfg-name" value="Ceatea" oninput="updateReceiptPreview()"></div>
+              <div class="settings-row"><div class="settings-rl"><strong>Currency symbol</strong><span>Prefix for all prices</span></div><input class="settings-inp" type="text" id="cfg-currency" value="Rs." oninput="updateReceiptPreview()"></div>
+              <div class="settings-row"><div class="settings-rl"><strong>Tax rate (%)</strong><span>0 to disable</span></div><input class="settings-inp" type="number" id="cfg-tax" min="0" max="100" step="0.5" value="0"></div>
+            </div>
+
+            <!-- RECEIPT SETTINGS -->
+            <div class="settings-sec">
+              <div class="settings-sec-title">Receipt Settings</div>
+
+              <!-- Logo upload -->
+              <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+                <div class="settings-rl"><strong>Store logo</strong><span>PNG or JPG — shown at the top of each receipt</span></div>
+                <div style="display:flex;gap:10px;align-items:center;width:100%">
+                  <div class="logo-upload-area" id="logoUploadArea">
+                    <input type="file" id="cfg-logo-file" accept="image/*" onchange="handleLogoUpload(this)">
+                    <div id="logoPreviewWrap">
+                      <div style="font-size:20px;margin-bottom:4px">🖼️</div>
+                      <div style="font-size:11px;color:var(--text3)">Click to upload logo</div>
+                    </div>
+                  </div>
+                  <button class="btn-ghost" id="logoRemoveBtn" style="display:none;font-size:11px;color:var(--red)" onclick="removeLogo()">✕ Remove</button>
+                </div>
+              </div>
+
+              <!-- Store details -->
+              <div class="settings-row"><div class="settings-rl"><strong>Address</strong><span>Street, city — printed below store name</span></div><input class="settings-inp" type="text" id="cfg-address" placeholder="123 High Street, London" oninput="updateReceiptPreview()"></div>
+              <div class="settings-row"><div class="settings-rl"><strong>Phone</strong></div><input class="settings-inp" type="text" id="cfg-phone" placeholder="+44 20 1234 5678" oninput="updateReceiptPreview()"></div>
+              <div class="settings-row"><div class="settings-rl"><strong>Footer message</strong><span>Printed at the bottom of each receipt</span></div><input class="settings-inp" type="text" id="cfg-footer" placeholder="Thank you for shopping with us!" oninput="updateReceiptPreview()"></div>
+
+              <!-- Show / hide toggles -->
+              <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+                <div class="settings-rl"><strong>Show on receipt</strong><span>Toggle individual sections on or off</span></div>
+                <div class="rs-toggle-grid">
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Logo</span><label class="tog"><input type="checkbox" id="rshow-logo" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Store name</span><label class="tog"><input type="checkbox" id="rshow-name" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Address</span><label class="tog"><input type="checkbox" id="rshow-address" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Phone</span><label class="tog"><input type="checkbox" id="rshow-phone" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Itemised list</span><label class="tog"><input type="checkbox" id="rshow-items" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Subtotal</span><label class="tog"><input type="checkbox" id="rshow-subtotal" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Total</span><label class="tog"><input type="checkbox" id="rshow-total" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Date &amp; time</span><label class="tog"><input type="checkbox" id="rshow-dt" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                  <div class="rs-toggle-row"><span class="rs-toggle-label">Cashier name</span><label class="tog"><input type="checkbox" id="rshow-cashier" checked onchange="updateReceiptPreview()"><span class="tog-sl"></span></label></div>
+                </div>
+              </div>
+
+              <!-- Font size -->
+              <div class="settings-row">
+                <div class="settings-rl"><strong>Font size</strong><span>Thermal printer text size</span></div>
+                <div class="rs-font-btns">
+                  <button class="rs-font-btn" id="rfont-sm" onclick="setReceiptFont('small')">Small</button>
+                  <button class="rs-font-btn on" id="rfont-md" onclick="setReceiptFont('medium')">Medium</button>
+                  <button class="rs-font-btn" id="rfont-lg" onclick="setReceiptFont('large')">Large</button>
+                </div>
+              </div>
+
+              <!-- Auto-print -->
+              <div class="settings-row"><div class="settings-rl"><strong>Auto-print receipt</strong><span>Send to printer immediately after each sale</span></div><label class="tog"><input type="checkbox" id="cfg-autoprint"><span class="tog-sl"></span></label></div>
+            </div>
+
+            <!-- SYSTEM -->
+            <div class="settings-sec">
+              <div class="settings-sec-title">System</div>
+              <div class="settings-row"><div class="settings-rl"><strong>Age verification prompts</strong><span>Show confirmation for 18+ items</span></div><label class="tog"><input type="checkbox" id="cfg-ageverify" checked><span class="tog-sl"></span></label></div>
+              <div class="settings-row"><div class="settings-rl"><strong>Low stock threshold override</strong><span>Leave blank to use per-product levels</span></div><input class="settings-inp" type="number" id="cfg-lowstock" min="0" placeholder="Per product"></div>
+            </div>
           </div>
-          <div class="settings-sec">
-            <div class="settings-sec-title">Receipt</div>
-            <div class="settings-row"><div class="settings-rl"><strong>Footer message</strong><span>Printed at bottom of receipts</span></div><input class="settings-inp" type="text" id="cfg-footer" placeholder="Thank you for shopping with us!"></div>
-            <div class="settings-row"><div class="settings-rl"><strong>Auto-print receipt</strong><span>Send to printer after each sale</span></div><label class="tog"><input type="checkbox" id="cfg-autoprint"><span class="tog-sl"></span></label></div>
-          </div>
-          <div class="settings-sec">
-            <div class="settings-sec-title">System</div>
-            <div class="settings-row"><div class="settings-rl"><strong>Age verification prompts</strong><span>Show confirmation for 18+ items</span></div><label class="tog"><input type="checkbox" id="cfg-ageverify" checked><span class="tog-sl"></span></label></div>
-            <div class="settings-row"><div class="settings-rl"><strong>Low stock threshold override</strong><span>Leave blank to use per-product levels</span></div><input class="settings-inp" type="number" id="cfg-lowstock" min="0" placeholder="Per product"></div>
+
+          <!-- RIGHT: live receipt preview -->
+          <div class="rcpt-preview-panel">
+            <div class="rcpt-preview-title">Live preview</div>
+            <div class="rcpt-paper md" id="rcptPreview">
+              <div style="text-align:center;color:var(--text3);font-size:11px;padding:20px 0">Loading preview…</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1688,21 +1777,51 @@ function processPayment(total, method, change){
   showReceiptModal(total,method,change);
 }
 function showReceiptModal(total,method,change){
-  const lines = cart.map(i=>`<div class="receipt-line"><span>${i.em} ${i.name} ×${i.qty}</span><span>Rs.${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
+  const rs = receiptSettings;
+  const cur = rs.currency||'Rs.';
   const ml = {card:'💳 Card',cash:'💵 Cash',split:'⚡ Split'}[method];
+  const fontMap = {small:'sm',medium:'md',large:'lg'};
+  const now = new Date();
+
+  let rHtml = `<div class="rcpt-paper ${fontMap[rs.fontSize]||'md'}" style="border:none;box-shadow:none;background:var(--surface2);margin-top:8px">`;
+  if(rs.showLogo && rs.logo) rHtml += `<img src="${rs.logo}" class="rcpt-logo-img">`;
+  if(rs.showStoreName && rs.storeName) rHtml += `<div class="rcpt-store-name">${rs.storeName}</div>`;
+  const meta=[];
+  if(rs.showAddress && rs.address) meta.push(rs.address);
+  if(rs.showPhone && rs.phone) meta.push(rs.phone);
+  if(meta.length) rHtml += `<div class="rcpt-meta">${meta.join('<br>')}</div>`;
+  const info=[];
+  if(rs.showDateTime) info.push(now.toLocaleDateString('en-GB')+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+  if(rs.showCashier) info.push('Cashier: '+(currentUser?.name||'Staff'));
+  if(info.length) rHtml += `<hr class="rcpt-dash"><div class="rcpt-meta">${info.join('<br>')}</div>`;
+  if(rs.showItems){
+    rHtml += '<hr class="rcpt-dash">';
+    rHtml += cart.map(i=>{
+      const lt=itemLineTotal(i);
+      const disc=i.disc>0?` <span style="color:var(--amber);font-size:.85em">-${i.discType==='pct'?i.disc+'%':cur+(+i.disc).toFixed(2)}</span>`:'';
+      return `<div class="rcpt-item-row"><span>${i.em} ${i.name}&nbsp;&times;${i.qty}${disc}</span><span>${cur}${lt.toFixed(2)}</span></div>`;
+    }).join('');
+  }
+  const sub=cart.reduce((t,i)=>t+itemLineTotal(i),0);
+  if(rs.showSubtotal && cart.length>1) rHtml += `<div class="rcpt-subtotal-row"><span>Subtotal</span><span>${cur}${sub.toFixed(2)}</span></div>`;
+  if(rs.showTotal) rHtml += `<div class="rcpt-total-row"><span>TOTAL</span><span>${cur}${total.toFixed(2)}</span></div>`;
+  if(change!=null&&change>0) rHtml += `<div class="receipt-change">Change: ${cur}${change.toFixed(2)}</div>`;
+  if(rs.footer) rHtml += `<div class="rcpt-footer-text">${rs.footer}</div>`;
+  rHtml += '</div>';
+
   openModal(
     `<div class="success-circle">✓</div>
-    <div style="text-align:center;margin-bottom:10px">
-      <div style="font-size:28px;font-weight:700;color:var(--g);font-family:'JetBrains Mono',monospace">Rs.${total.toFixed(2)}</div>
+    <div style="text-align:center;margin-bottom:4px">
+      <div style="font-size:28px;font-weight:700;color:var(--g);font-family:'JetBrains Mono',monospace">${cur}${total.toFixed(2)}</div>
       <div style="font-size:11px;color:var(--text3);margin-top:3px">${ml}</div>
-    </div>
-    <div class="receipt-box">${lines}<div class="receipt-total"><span>Total</span><span>Rs.${total.toFixed(2)}</span></div>${change!=null&&change>0?`<div class="receipt-change">Change: Rs.${change.toFixed(2)}</div>`:''}</div>`,
+    </div>${rHtml}`,
     'New sale',
     'Print receipt',
     ()=>{ closeModal(); clearCart(); renderGrid(); toast('Sale complete'); },
-    ()=>{ closeModal(); clearCart(); renderGrid(); toast('Receipt sent to printer'); },
+    ()=>{ window.print(); closeModal(); clearCart(); renderGrid(); toast('Receipt sent to printer'); },
     'Payment successful'
   );
+  if(rs.autoPrint) setTimeout(()=>window.print(), 200);
 }
 
 // ── PLU / NUMPAD ──
@@ -2673,10 +2792,153 @@ function payCredit(id){
 }
 
 // ── SETTINGS ──
+let receiptSettings = {
+  logo:'', storeName:'Ceatea', currency:'Rs.', address:'', phone:'', footer:'',
+  showLogo:true, showStoreName:true, showAddress:true, showPhone:true,
+  showItems:true, showSubtotal:true, showTotal:true, showDateTime:true, showCashier:true,
+  fontSize:'medium', autoPrint:false,
+};
+
+function _sval(id){ const e=document.getElementById(id); return e?e.value:''; }
+function _sck(id){ const e=document.getElementById(id); return e?e.checked:true; }
+
 function saveSettings(){
-  const name=document.getElementById('cfg-name')?.value.trim()||'Ceatea';
-  toast(`Settings saved — store: ${name}`);
-  addAudit('system','Settings updated');
+  receiptSettings.storeName    = _sval('cfg-name').trim()||'Ceatea';
+  receiptSettings.currency     = _sval('cfg-currency').trim()||'Rs.';
+  receiptSettings.address      = _sval('cfg-address').trim();
+  receiptSettings.phone        = _sval('cfg-phone').trim();
+  receiptSettings.footer       = _sval('cfg-footer').trim();
+  receiptSettings.showLogo     = _sck('rshow-logo');
+  receiptSettings.showStoreName= _sck('rshow-name');
+  receiptSettings.showAddress  = _sck('rshow-address');
+  receiptSettings.showPhone    = _sck('rshow-phone');
+  receiptSettings.showItems    = _sck('rshow-items');
+  receiptSettings.showSubtotal = _sck('rshow-subtotal');
+  receiptSettings.showTotal    = _sck('rshow-total');
+  receiptSettings.showDateTime = _sck('rshow-dt');
+  receiptSettings.showCashier  = _sck('rshow-cashier');
+  receiptSettings.autoPrint    = _sck('cfg-autoprint');
+  localStorage.setItem('ceatea_rcpt', JSON.stringify(receiptSettings));
+  addAudit('system','Receipt settings saved');
+  toast('Settings saved');
+}
+
+function loadSettings(){
+  const raw = localStorage.getItem('ceatea_rcpt');
+  if(raw){ try{ Object.assign(receiptSettings, JSON.parse(raw)); }catch(e){} }
+  const s = receiptSettings;
+  const setV = (id,v) => { const e=document.getElementById(id); if(e)e.value=v||''; };
+  const setC = (id,v) => { const e=document.getElementById(id); if(e)e.checked=!!v; };
+  setV('cfg-name',     s.storeName);
+  setV('cfg-currency', s.currency);
+  setV('cfg-address',  s.address);
+  setV('cfg-phone',    s.phone);
+  setV('cfg-footer',   s.footer);
+  setC('rshow-logo',     s.showLogo);
+  setC('rshow-name',     s.showStoreName);
+  setC('rshow-address',  s.showAddress);
+  setC('rshow-phone',    s.showPhone);
+  setC('rshow-items',    s.showItems);
+  setC('rshow-subtotal', s.showSubtotal);
+  setC('rshow-total',    s.showTotal);
+  setC('rshow-dt',       s.showDateTime);
+  setC('rshow-cashier',  s.showCashier);
+  setC('cfg-autoprint',  s.autoPrint);
+  if(s.logo) _showLogoPreview(s.logo);
+  setReceiptFont(s.fontSize, true);
+  updateReceiptPreview();
+}
+
+function setReceiptFont(size, silent=false){
+  receiptSettings.fontSize = size;
+  const map = {small:'sm', medium:'md', large:'lg'};
+  ['sm','md','lg'].forEach(k => document.getElementById('rfont-'+k)?.classList.remove('on'));
+  document.getElementById('rfont-'+(map[size]||'md'))?.classList.add('on');
+  if(!silent) updateReceiptPreview();
+}
+
+function handleLogoUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 600*1024){ toast('Logo must be under 600 KB'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    receiptSettings.logo = e.target.result;
+    _showLogoPreview(e.target.result);
+    updateReceiptPreview();
+  };
+  reader.readAsDataURL(file);
+}
+
+function _showLogoPreview(src){
+  const wrap = document.getElementById('logoPreviewWrap');
+  const removeBtn = document.getElementById('logoRemoveBtn');
+  if(wrap) wrap.innerHTML = `<img src="${src}" style="max-height:48px;max-width:120px;display:block;margin:0 auto;border-radius:4px">`;
+  if(removeBtn) removeBtn.style.display = '';
+}
+
+function removeLogo(){
+  receiptSettings.logo = '';
+  const wrap = document.getElementById('logoPreviewWrap');
+  const removeBtn = document.getElementById('logoRemoveBtn');
+  const fi = document.getElementById('cfg-logo-file');
+  if(wrap) wrap.innerHTML = '<div style="font-size:20px;margin-bottom:4px">🖼️</div><div style="font-size:11px;color:var(--text3)">Click to upload logo</div>';
+  if(removeBtn) removeBtn.style.display = 'none';
+  if(fi) fi.value = '';
+  updateReceiptPreview();
+}
+
+function updateReceiptPreview(){
+  const el = document.getElementById('rcptPreview');
+  if(!el) return;
+  const cur = _sval('cfg-currency')||receiptSettings.currency||'Rs.';
+  const s = {
+    logo:        receiptSettings.logo,
+    storeName:   _sval('cfg-name')||receiptSettings.storeName,
+    address:     _sval('cfg-address'),
+    phone:       _sval('cfg-phone'),
+    footer:      _sval('cfg-footer'),
+    showLogo:    _sck('rshow-logo'),
+    showName:    _sck('rshow-name'),
+    showAddress: _sck('rshow-address'),
+    showPhone:   _sck('rshow-phone'),
+    showItems:   _sck('rshow-items'),
+    showSubtotal:_sck('rshow-subtotal'),
+    showTotal:   _sck('rshow-total'),
+    showDT:      _sck('rshow-dt'),
+    showCashier: _sck('rshow-cashier'),
+  };
+  const fontMap = {small:'sm',medium:'md',large:'lg'};
+  el.className = 'rcpt-paper '+(fontMap[receiptSettings.fontSize]||'md');
+
+  const mockItems = [
+    {name:'Milk 2L',qty:2,price:1.55},
+    {name:'Cheddar 400g',qty:1,price:3.20},
+    {name:'Bananas',qty:3,price:0.79},
+  ];
+  const sub = mockItems.reduce((t,i)=>t+i.price*i.qty,0);
+  const now = new Date();
+
+  let h = '';
+  if(s.showLogo && s.logo) h += `<img src="${s.logo}" class="rcpt-logo-img">`;
+  if(s.showName && s.storeName) h += `<div class="rcpt-store-name">${s.storeName}</div>`;
+  const meta = [];
+  if(s.showAddress && s.address) meta.push(s.address);
+  if(s.showPhone && s.phone) meta.push(s.phone);
+  if(meta.length) h += `<div class="rcpt-meta">${meta.join('<br>')}</div>`;
+  const info = [];
+  if(s.showDT) info.push(now.toLocaleDateString('en-GB')+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+  if(s.showCashier) info.push('Cashier: '+(currentUser?.name||'Staff'));
+  if(info.length) h += `<hr class="rcpt-dash"><div class="rcpt-meta">${info.join('<br>')}</div>`;
+  if(s.showItems){
+    h += '<hr class="rcpt-dash">';
+    h += mockItems.map(i=>`<div class="rcpt-item-row"><span>${i.name} &times;${i.qty}</span><span>${cur}${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
+  }
+  if(s.showSubtotal) h += `<div class="rcpt-subtotal-row"><span>Subtotal</span><span>${cur}${sub.toFixed(2)}</span></div>`;
+  if(s.showTotal) h += `<div class="rcpt-total-row"><span>TOTAL</span><span>${cur}${sub.toFixed(2)}</span></div>`;
+  if(s.footer) h += `<div class="rcpt-footer-text">${s.footer}</div>`;
+
+  el.innerHTML = h || '<div style="text-align:center;color:var(--text3);font-size:11px;padding:20px 0">Enable at least one field</div>';
 }
 
 // ── TOAST ──
@@ -2829,6 +3091,7 @@ function canAccess(section){
 
 // ── INIT ──
 initCats(); renderGrid(); renderCart();
+loadSettings();
 initDB();
 // Restore session or show login
 const saved = localStorage.getItem('ceatea_session');
