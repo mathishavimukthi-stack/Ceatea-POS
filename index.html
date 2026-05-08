@@ -1563,7 +1563,7 @@ function showAddProduct(){
     </div>
     <div class="form-label">Category</div><select class="form-select" id="np-cat">${CATEGORIES.filter(c=>c!=='All').map(c=>`<option>${c}</option>`).join('')}</select>`,
     'Add product','Cancel',
-    ()=>{
+    async ()=>{
       const name=document.getElementById('np-name').value.trim();
       const em=document.getElementById('np-em').value||'📦';
       const price=parseFloat(document.getElementById('np-price').value)||0;
@@ -1998,7 +1998,7 @@ function addCustomer(){
     <div class="form-label">Email</div><input class="form-input" type="email" id="ac-email" placeholder="jane@example.com">
     <div class="form-label">Phone</div><input class="form-input" type="tel" id="ac-phone" placeholder="0771 234 567">`,
     'Add customer','Cancel',
-    ()=>{
+    async ()=>{
       const name=document.getElementById('ac-name').value.trim();
       if(!name){toast('Name is required');return;}
       const email=document.getElementById('ac-email').value.trim();
@@ -2092,7 +2092,7 @@ function addCreditAccount(){
     `<div class="form-label">Customer name</div><input class="form-input" type="text" id="ca2-name" placeholder="Jane Smith">
     <div class="form-label">Credit limit (Rs.)</div><input class="form-input" type="number" id="ca2-limit" min="0" step="1" value="100">`,
     'Create','Cancel',
-    ()=>{
+    async ()=>{
       const name=document.getElementById('ca2-name').value.trim();
       if(!name){toast('Name is required');return;}
       const limit=parseFloat(document.getElementById('ca2-limit').value)||100;
