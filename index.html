@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ceatea POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase CDN removed — data layer replaced by Electron/SQLite -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1167,19 +1167,14 @@ tbody tr:hover{background:var(--surface2)}
 </div>
 
 <script>
-// ── SUPABASE ──────────────────────────────────────────────────────────────
-const SUPA_URL = 'https://mtqnzxvrhpgbedmonsge.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10cW56eHZyaHBnYmVkbW9uc2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMjQ2OTYsImV4cCI6MjA5MzgwMDY5Nn0.hlMFDWi2gSnqvmTzTH2EUSSmedNgQ_KcO2dPEIfS1cE';
-let _sb = null;
-try { _sb = window.supabase?.createClient(SUPA_URL, SUPA_KEY) || null; } catch(e){}
+// ── DATABASE (Electron IPC → SQLite) ─────────────────────────────────────
+const _api = window.electronAPI || null;
 
 async function dbOp(table, method, data, matchField, matchVal){
-  if(!_sb) return;
+  if(!_api) return null;
   try {
-    if(method==='insert') return await _sb.from(table).insert(data);
-    if(method==='update') return await _sb.from(table).update(data).eq(matchField, matchVal);
-    if(method==='delete') return await _sb.from(table).delete().eq(matchField, matchVal);
-  } catch(e){ console.warn('Supabase sync error:', e); }
+    return await _api.dbOp(table, method, data, matchField, matchVal);
+  } catch(e){ console.warn('DB error:', e); return null; }
 }
 
 // ── DATA ──────────────────────────────────────────────────────────────────
@@ -1990,7 +1985,7 @@ function showAddProduct(){
       const barcode=document.getElementById('np-barcode').value.trim();
       if(!name){toast('Name is required');return;}
       const newProd={name,em,cat,price,stock,low:5,age,unit,barcode};
-      const {data:ins}=await _sb.from('products').insert(newProd).select().single().catch(()=>({data:null}));
+      const ins = await dbOp('products','insert',newProd);
       products.push({id:ins?.id||Date.now(),...newProd});
       closeModal();renderInventory('');renderGrid();toast(name+' added');
     },
@@ -2293,6 +2288,12 @@ function confirmWriteOff(){
     time: new Date()
   };
   writeOffs.unshift(entry);
+  if(_api) _api.insertWriteOff({
+    product_id:   _woSelected.id,
+    product_name: _woSelected.name,
+    em:           _woSelected.em || '📦',
+    qty, reason: _woReason, detail,
+  });
   addAudit('stock', `Write-off: ${qty}x ${_woSelected.name} (${_woReason})`);
 
   renderInvStats();
@@ -2657,7 +2658,7 @@ function addCustomer(){
       if(!name){toast('Name is required');return;}
       const email=document.getElementById('ac-email').value.trim();
       const phone=document.getElementById('ac-phone').value.trim();
-      const {data:nc}=await _sb.from('customers').insert({name,email,phone,credit_balance:0}).select().single().catch(()=>({data:null}));
+      const nc = await dbOp('customers','insert',{name,email,phone,credit_balance:0});
       customers.push({id:nc?.id||Date.now(),name,email,phone,joined:new Date(),creditBalance:0});
       closeModal();renderCustomers();toast(name+' added');addAudit('system','Customer added: '+name);
     },closeModal,'Add Customer'
@@ -2750,7 +2751,7 @@ function addCreditAccount(){
       const name=document.getElementById('ca2-name').value.trim();
       if(!name){toast('Name is required');return;}
       const limit=parseFloat(document.getElementById('ca2-limit').value)||100;
-      const {data:nca}=await _sb.from('credit_accounts').insert({name,credit_limit:limit,balance:0,history:[]}).select().single().catch(()=>({data:null}));
+      const nca = await dbOp('credit_accounts','insert',{name,credit_limit:limit,balance:0,history:[]});
       creditAccounts.push({id:nca?.id||nextCreditId++,name,limit,balance:0,history:[]});
       closeModal();renderCredit();toast('Account created for '+name);addAudit('system','Credit account created for '+name);
     },closeModal,'New Credit Account'
@@ -2818,13 +2819,17 @@ function saveSettings(){
   receiptSettings.showDateTime = _sck('rshow-dt');
   receiptSettings.showCashier  = _sck('rshow-cashier');
   receiptSettings.autoPrint    = _sck('cfg-autoprint');
-  localStorage.setItem('ceatea_rcpt', JSON.stringify(receiptSettings));
+  const _rcptJson = JSON.stringify(receiptSettings);
+  if(_api) _api.setSetting('receiptSettings', _rcptJson);
+  else localStorage.setItem('ceatea_rcpt', _rcptJson);
   addAudit('system','Receipt settings saved');
   toast('Settings saved');
 }
 
-function loadSettings(){
-  const raw = localStorage.getItem('ceatea_rcpt');
+async function loadSettings(){
+  let raw;
+  if(_api) raw = await _api.getSetting('receiptSettings');
+  else raw = localStorage.getItem('ceatea_rcpt');
   if(raw){ try{ Object.assign(receiptSettings, JSON.parse(raw)); }catch(e){} }
   const s = receiptSettings;
   const setV = (id,v) => { const e=document.getElementById(id); if(e)e.value=v||''; };
@@ -2949,80 +2954,57 @@ function toast(msg){
   clearTimeout(_tt);_tt=setTimeout(()=>el.style.display='none',2400);
 }
 
-// ── INIT DB (background — page loads first, data syncs after) ──
+// ── INIT DB (SQLite via Electron IPC) ─────────────────────────────────────
 async function initDB(){
-  if(!_sb) return;
+  if(!_api) return;
   try {
-    const [pRes, txRes, custRes, credRes, quotRes, invRes] = await Promise.all([
-      _sb.from('products').select('*').order('id'),
-      _sb.from('transactions').select('*').order('created_at', {ascending:false}),
-      _sb.from('customers').select('*').order('id'),
-      _sb.from('credit_accounts').select('*').order('id'),
-      _sb.from('quotations').select('*').order('created_at', {ascending:false}),
-      _sb.from('invoices').select('*').order('created_at', {ascending:false}),
-    ]);
+    const d = await _api.initData();
 
-    if(pRes.data?.length) {
-      products = pRes.data.map(x=>({
-        id: x.id, name: x.name, em: x.em||'📦', cat: x.cat,
-        price: parseFloat(x.price||0), stock: parseInt(x.stock||0),
-        low: parseInt(x.low||5), age: !!x.age,
-      }));
+    if(d.products?.length){
+      products = d.products; // already mapped by ipc-handlers
       renderGrid(); renderInvStats();
     }
 
-    if(txRes.data?.length) {
-      transactions = txRes.data.map(x=>({
-        ref: x.ref, type: x.type, method: x.method,
-        total: parseFloat(x.total||0),
-        items: Array.isArray(x.items) ? x.items : [],
-        time: new Date(x.created_at),
-      }));
+    if(d.transactions?.length){
+      transactions = d.transactions.map(t=>({...t, time:new Date(t.time)}));
       const maxOrd = transactions.reduce((m,t)=>{const n=parseInt((t.ref||'').replace(/\D/g,''))||0;return Math.max(m,n);},0);
       if(maxOrd>0) orderNum = maxOrd+1;
     }
 
-    if(custRes.data?.length) {
-      customers = custRes.data.map(x=>({
-        id: x.id, name: x.name, email: x.email||'', phone: x.phone||'',
-        joined: new Date(x.created_at), creditBalance: parseFloat(x.credit_balance||0),
-      }));
+    if(d.customers?.length){
+      customers = d.customers.map(c=>({...c, joined:new Date(c.joined)}));
+      nextCustId = customers.reduce((m,c)=>Math.max(m,c.id),0)+1;
     }
 
-    if(credRes.data?.length) {
-      creditAccounts = credRes.data.map(x=>({
-        id: x.id, name: x.name,
-        limit: parseFloat(x.credit_limit||100),
-        balance: parseFloat(x.balance||0),
-        history: Array.isArray(x.history) ? x.history.map(h=>({...h,date:new Date(h.date||Date.now())})) : [],
+    if(d.creditAccounts?.length){
+      creditAccounts = d.creditAccounts.map(a=>({
+        ...a,
+        history: a.history.map(h=>({...h, date:new Date(h.date||Date.now())}))
       }));
       nextCreditId = creditAccounts.reduce((m,a)=>Math.max(m,a.id),0)+1;
     }
 
-    if(quotRes.data?.length) {
-      quotations = quotRes.data.map(x=>({
-        id: x.id, customer: x.customer,
-        items: Array.isArray(x.items) ? x.items : [],
-        total: parseFloat(x.total||0), status: x.status||'Draft',
-        date: new Date(x.created_at),
-      }));
+    if(d.quotations?.length){
+      quotations = d.quotations.map(q=>({...q, date:new Date(q.date)}));
       const maxQ = quotations.reduce((m,q)=>{const n=parseInt((q.id||'').replace(/\D/g,''))||0;return Math.max(m,n);},0);
       if(maxQ>0) nextQuotId = maxQ+1;
     }
 
-    if(invRes.data?.length) {
-      invoicesData = invRes.data.map(x=>({
-        id: x.id, customer: x.customer,
-        items: Array.isArray(x.items) ? x.items : [],
-        total: parseFloat(x.total||0), status: x.status||'Pending',
-        date: new Date(x.created_at),
-        due: x.due_date ? new Date(x.due_date) : new Date(Date.now()+14*864e5),
+    if(d.invoices?.length){
+      invoicesData = d.invoices.map(i=>({
+        ...i,
+        date: new Date(i.date),
+        due:  i.due ? new Date(i.due) : new Date(Date.now()+14*864e5),
       }));
       const maxI = invoicesData.reduce((m,i)=>{const n=parseInt((i.id||'').replace(/\D/g,''))||0;return Math.max(m,n);},0);
       if(maxI>0) nextInvId = maxI+1;
     }
 
-  } catch(e){ console.warn('DB sync failed, running offline:', e); }
+    if(d.writeOffs?.length){
+      writeOffs = d.writeOffs.map(w=>({...w, time:new Date(w.time)}));
+    }
+
+  } catch(e){ console.warn('DB init failed:', e); }
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────
@@ -3034,7 +3016,7 @@ const STAFF_ALLOWED = ['sell','products','history','writeoff'];
 // Staff can add products (but not edit price / delete / export)
 let currentUser = null;
 
-function doLogin(){
+async function doLogin(){
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const p = document.getElementById('loginPass').value;
   const err = document.getElementById('loginError');
@@ -3046,12 +3028,14 @@ function doLogin(){
   }
   err.textContent = '';
   currentUser = { username: u, role: user.role, name: user.name };
-  localStorage.setItem('ceatea_session', JSON.stringify(currentUser));
+  if(_api) await _api.setSession(currentUser);
+  else localStorage.setItem('ceatea_session', JSON.stringify(currentUser));
   applySession();
 }
 
-function logout(){
-  localStorage.removeItem('ceatea_session');
+async function logout(){
+  if(_api) await _api.clearSession();
+  else localStorage.removeItem('ceatea_session');
   currentUser = null;
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('loginUser').value = '';
@@ -3091,11 +3075,18 @@ function canAccess(section){
 
 // ── INIT ──
 initCats(); renderGrid(); renderCart();
-loadSettings();
-initDB();
-// Restore session or show login
-const saved = localStorage.getItem('ceatea_session');
-if(saved){ try{ currentUser = JSON.parse(saved); applySession(); } catch(e){ localStorage.removeItem('ceatea_session'); } }
+(async () => {
+  await loadSettings();
+  await initDB();
+  // Restore session or show login
+  if(_api){
+    const sess = await _api.getSession();
+    if(sess){ currentUser = sess; applySession(); }
+  } else {
+    const saved = localStorage.getItem('ceatea_session');
+    if(saved){ try{ currentUser=JSON.parse(saved); applySession(); } catch(e){ localStorage.removeItem('ceatea_session'); } }
+  }
+})();
 
 </script>
 </body>

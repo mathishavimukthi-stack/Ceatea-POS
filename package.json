@@ -1,0 +1,46 @@
+{
+  "name": "ceatea-pos",
+  "version": "1.0.0",
+  "description": "Ceatea Point of Sale — Desktop Edition",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win --x64",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3"
+  },
+  "devDependencies": {
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.ceatea.pos",
+    "productName": "Ceatea POS",
+    "copyright": "Copyright © 2025 Ceatea",
+    "asar": true,
+    "asarUnpack": ["**/better-sqlite3/**"],
+    "files": [
+      "main.js",
+      "preload.js",
+      "db.js",
+      "ipc-handlers.js",
+      "index.html",
+      "assets/**",
+      "node_modules/**"
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Ceatea POS"
+    }
+  }
+}
