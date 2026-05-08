@@ -50,6 +50,32 @@ input,select{font-family:inherit}
 .nav-fs-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;transition:.15s;color:rgba(255,255,255,.6)}
 .nav-fs-btn:hover{background:rgba(255,255,255,.1);color:#fff}
 .nav-fs-btn svg{width:16px;height:16px;flex-shrink:0}
+.nav-logout{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);padding:5px 10px;border-radius:5px;cursor:pointer;transition:.15s;border:1px solid rgba(255,255,255,.12)}
+.nav-logout:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-role-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.4px}
+.nav-role-badge.admin{background:rgba(22,169,126,.25);color:#4ade80}
+.nav-role-badge.staff{background:rgba(37,99,235,.25);color:#93c5fd}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:10000}
+#loginScreen.hidden{display:none}
+.login-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:360px;box-shadow:var(--shadow-lg)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-logo-mark{width:36px;height:36px;background:var(--g);border-radius:9px;display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:7px;flex-shrink:0}
+.login-logo-dot{background:rgba(255,255,255,.95);border-radius:1.5px}
+.login-logo-name{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.5px}
+.login-logo-sub{font-size:11px;color:var(--text3);margin-left:2px;font-weight:500}
+.login-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--text3);margin-bottom:24px}
+.login-field{margin-bottom:14px}
+.login-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.4px}
+.login-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;color:var(--text);background:var(--surface2);outline:none;transition:.2s}
+.login-input:focus{border-color:var(--g);background:#fff;box-shadow:0 0 0 3px rgba(22,169,126,.1)}
+.login-btn{width:100%;background:var(--g);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:6px;font-family:inherit}
+.login-btn:hover{background:var(--g2)}
+.login-error{font-size:12px;color:var(--red);margin-top:10px;text-align:center;min-height:18px}
+.login-hint{margin-top:20px;padding:12px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text3);line-height:1.7}
+.login-hint strong{color:var(--text2)}
 
 /* ── BODY ROW ── */
 .body-row{display:flex;overflow:hidden;height:calc(100vh - 52px)}
@@ -487,10 +513,12 @@ tbody tr:hover{background:var(--surface2)}
           <line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>
         </svg>
       </button>
+      <span id="navRoleBadge" class="nav-role-badge"></span>
       <div class="nav-user">
-        <div class="nav-avatar">S</div>
-        <span class="nav-user-name">Sarah</span>
+        <div class="nav-avatar" id="navAvatar">?</div>
+        <span class="nav-user-name" id="navUserName">—</span>
       </div>
+      <button class="nav-logout" onclick="logout()">Sign out</button>
     </div>
   </nav>
 
@@ -914,6 +942,35 @@ tbody tr:hover{background:var(--surface2)}
 
 <div class="toast" id="toastEl"></div>
 
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark">
+        <div class="login-logo-dot"></div><div class="login-logo-dot"></div>
+        <div class="login-logo-dot"></div><div class="login-logo-dot"></div>
+      </div>
+      <div><div class="login-logo-name">Ceatea</div><div class="login-logo-sub">Point of Sale</div></div>
+    </div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Sign in to continue</div>
+    <div class="login-field">
+      <label class="login-label">Username</label>
+      <input class="login-input" type="text" id="loginUser" placeholder="Enter username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="login-field">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">
+      <strong>Admin:</strong> admin / admin123<br>
+      <strong>Staff:</strong> staff / staff123
+    </div>
+  </div>
+</div>
+
 <script>
 // ── SUPABASE ──────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://mtqnzxvrhpgbedmonsge.supabase.co';
@@ -1021,6 +1078,7 @@ const SB_MAP = {
   credit:'sb-cred',audit:'sb-audit',settings:'sb-settings'
 };
 function sideNav(section){
+  if(!canAccess(section)){toast('Access restricted');return;}
   const v=VIEW_MAP[section];
   if(!v)return;
   switchView(v);
@@ -1515,14 +1573,26 @@ function closeModal(){if(_modal){_modal.remove();_modal=null;}}
 function renderInventory(q=''){
   const query=(q||'').toLowerCase();
   const list=products.filter(p=>!query||p.name.toLowerCase().includes(query)||String(p.id).includes(query));
+  const isAdmin = currentUser?.role==='admin';
+  // Show/hide admin-only header buttons
+  const addBtn=document.querySelector('#vinv .btn-primary');
+  const expBtn=document.querySelector('#vinv .btn-ghost');
+  if(addBtn) addBtn.style.display=isAdmin?'':'none';
+  if(expBtn) expBtn.style.display=isAdmin?'':'none';
   document.getElementById('invTbody').innerHTML=list.map(p=>{
     const sc=p.stock===0?'out':p.stock<=p.low?'low':'ok';
     const sl=p.stock===0?'Out of stock':p.stock<=p.low?'Low stock':'In stock';
+    const priceCell = isAdmin
+      ? `<input class="tbl-price" type="number" value="${p.price.toFixed(2)}" min="0" step="0.01" onchange="updatePrice(${p.id},this.value)">`
+      : `<span style="font-family:'JetBrains Mono',monospace;font-weight:600">Rs.${p.price.toFixed(2)}</span>`;
+    const stockCell = isAdmin
+      ? `<input class="tbl-input" type="number" value="${p.stock}" min="0" onchange="updateStock(${p.id},this.value)">`
+      : `<span style="font-weight:600">${p.stock}</span>`;
     return `<tr>
       <td><span style="margin-right:7px;font-size:15px">${p.em}</span><strong>${p.name}</strong>${p.age?' <span style="font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700">18+</span>':''}</td>
       <td><span style="font-size:11px;color:var(--text2)">${p.cat}</span></td>
-      <td><input class="tbl-price" type="number" value="${p.price.toFixed(2)}" min="0" step="0.01" onchange="updatePrice(${p.id},this.value)"></td>
-      <td><input class="tbl-input" type="number" value="${p.stock}" min="0" onchange="updateStock(${p.id},this.value)"></td>
+      <td>${priceCell}</td>
+      <td>${stockCell}</td>
       <td><span class="stock-badge ${sc}">${sl}</span></td>
       <td><button class="tbl-action" onclick="restockModal(${p.id})">+ Restock</button></td>
     </tr>`;
@@ -2228,9 +2298,76 @@ async function initDB(){
   } catch(e){ console.warn('DB sync failed, running offline:', e); }
 }
 
+// ── AUTH ──────────────────────────────────────────────────────────────────
+const USERS = {
+  admin: { password:'admin123', role:'admin', name:'Admin' },
+  staff: { password:'staff123', role:'staff', name:'Staff' },
+};
+const STAFF_ALLOWED = ['sell','products','history'];
+let currentUser = null;
+
+function doLogin(){
+  const u = document.getElementById('loginUser').value.trim().toLowerCase();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  const user = USERS[u];
+  if(!user || user.password !== p){
+    err.textContent = 'Invalid username or password';
+    document.getElementById('loginPass').value = '';
+    return;
+  }
+  err.textContent = '';
+  currentUser = { username: u, role: user.role, name: user.name };
+  localStorage.setItem('ceatea_session', JSON.stringify(currentUser));
+  applySession();
+}
+
+function logout(){
+  localStorage.removeItem('ceatea_session');
+  currentUser = null;
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').textContent = '';
+  sideNav('sell');
+}
+
+function applySession(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  const isAdmin = currentUser.role === 'admin';
+  // Nav
+  document.getElementById('navAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('navUserName').textContent = currentUser.name;
+  const badge = document.getElementById('navRoleBadge');
+  badge.textContent = currentUser.role;
+  badge.className = 'nav-role-badge ' + currentUser.role;
+  // Sidebar: hide items staff can't access
+  const staffHidden = ['sb-quot','sb-inv','sb-ret','sb-cust','sb-cred','sb-dash','sb-reports','sb-audit','sb-settings'];
+  staffHidden.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = isAdmin ? '' : 'none';
+  });
+  // Hide section labels with no visible items
+  document.querySelectorAll('.sb-section').forEach(sec => {
+    const visible = [...sec.querySelectorAll('.sb-item')].some(i => i.style.display !== 'none');
+    sec.style.display = visible ? '' : 'none';
+  });
+  renderInventory('');
+}
+
+function canAccess(section){
+  if(!currentUser) return false;
+  if(currentUser.role === 'admin') return true;
+  return STAFF_ALLOWED.includes(section);
+}
+
 // ── INIT ──
 initCats(); renderGrid(); renderCart();
-initDB(); // runs in background, refreshes views when data arrives
+initDB();
+// Restore session or show login
+const saved = localStorage.getItem('ceatea_session');
+if(saved){ try{ currentUser = JSON.parse(saved); applySession(); } catch(e){ localStorage.removeItem('ceatea_session'); } }
+
 </script>
 </body>
 </html>
