@@ -387,6 +387,76 @@ tbody tr:hover{background:var(--surface2)}
 /* ── TOAST ── */
 .toast{position:fixed;bottom:18px;right:18px;background:var(--text);color:#fff;padding:9px 14px;border-radius:var(--r);font-size:12px;font-weight:500;z-index:9999;display:none;align-items:center;gap:7px;box-shadow:var(--shadow-md);animation:toastIn .2s ease}
 @keyframes toastIn{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ═══ NEW VIEWS SHARED ═══ */
+.page-view{flex-direction:column}
+.page-header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.page-header h2{font-size:15px;font-weight:700;flex:1;letter-spacing:-.3px}
+.page-body{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.page-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.page-card-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px}
+.stat-g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat-g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-c{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px}
+.stat-c .lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.stat-c .val{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.4px}
+.stat-c .sub{font-size:10px;color:var(--text3);margin-top:2px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.bg-green{background:#f0fdf4;color:#15803d}
+.bg-red{background:var(--red-bg);color:var(--red)}
+.bg-amber{background:var(--amber-bg);color:var(--amber)}
+.bg-blue{background:var(--blue-bg);color:var(--blue)}
+.bg-gray{background:var(--surface3);color:var(--text3)}
+.dt{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.dt thead{background:var(--surface2)}
+.dt th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.dt td{padding:9px 12px;font-size:12px;color:var(--text);border-bottom:1px solid var(--border)}
+.dt tr:last-child td{border-bottom:none}
+.dt tbody tr:hover{background:var(--surface2)}
+.fbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fbar input,.fbar select{padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surface2);color:var(--text);outline:none;font-family:'Plus Jakarta Sans',sans-serif}
+.fbar input[type=date]{font-family:'JetBrains Mono',monospace;font-size:11px}
+.fbar input:focus,.fbar select:focus{border-color:var(--g);background:#fff}
+.empty-pg{padding:36px;text-align:center;color:var(--text3)}
+.empty-pg-ic{font-size:30px;opacity:.2;margin-bottom:8px}
+.empty-pg-t{font-size:13px;font-weight:600;color:var(--text2)}
+.empty-pg-s{font-size:11px;color:var(--text4);margin-top:3px}
+.alert-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.alert-item:last-child{border-bottom:none}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.alert-dot.red{background:var(--red)}
+.alert-dot.amber{background:var(--amber)}
+.settings-sec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.settings-sec-title{padding:10px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.settings-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);gap:14px}
+.settings-row:last-child{border-bottom:none}
+.settings-rl{flex:1}
+.settings-rl strong{font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:1px}
+.settings-rl span{font-size:10px;color:var(--text3)}
+.settings-inp{padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surface2);color:var(--text);outline:none;font-family:'Plus Jakarta Sans',sans-serif;min-width:160px}
+.settings-inp:focus{border-color:var(--g);background:#fff}
+.tog{position:relative;width:38px;height:20px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-sl{position:absolute;inset:0;background:var(--border2);border-radius:10px;cursor:pointer;transition:.2s}
+.tog-sl:before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:var(--g)}
+.tog input:checked+.tog-sl:before{transform:translateX(18px)}
+.cust-row{display:flex;align-items:center;gap:9px;padding:8px;border-radius:var(--r-sm);cursor:pointer;transition:.12s}
+.cust-row:hover{background:var(--surface2)}
+.cust-row.sel{background:var(--g3)}
+.cust-av{width:34px;height:34px;background:var(--g3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--g);flex-shrink:0}
+.cust-name{font-size:12px;font-weight:600;color:var(--text)}
+.cust-meta{font-size:10px;color:var(--text3);margin-top:1px}
+.audit-row{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)}
+.audit-row:last-child{border-bottom:none}
+.audit-ic{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px}
+.audit-ic.sale{background:var(--g3)}
+.audit-ic.refund{background:var(--red-bg)}
+.audit-ic.stock{background:var(--blue-bg)}
+.audit-ic.system{background:var(--surface2)}
+.audit-msg{font-size:12px;font-weight:500;color:var(--text)}
+.audit-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
 </style>
 </head>
 <body>
@@ -433,16 +503,16 @@ tbody tr:hover{background:var(--surface2)}
           <div class="sb-item active" id="sb-sell" onclick="sideNav('sell')">
             <span class="sb-item-icon">🛒</span>Sell
           </div>
-          <div class="sb-item" onclick="sideNav('quotations')">
+          <div class="sb-item" id="sb-quot" onclick="sideNav('quotations')">
             <span class="sb-item-icon">📋</span>Quotations
           </div>
-          <div class="sb-item" onclick="sideNav('invoices')">
+          <div class="sb-item" id="sb-inv" onclick="sideNav('invoices')">
             <span class="sb-item-icon">🧾</span>Invoices
           </div>
-          <div class="sb-item" onclick="sideNav('history')">
+          <div class="sb-item" id="sb-hist" onclick="sideNav('history')">
             <span class="sb-item-icon">🕐</span>Sales History
           </div>
-          <div class="sb-item" onclick="sideNav('returns')">
+          <div class="sb-item" id="sb-ret" onclick="sideNav('returns')">
             <span class="sb-item-icon">↩</span>Returns
           </div>
         </div>
@@ -456,17 +526,17 @@ tbody tr:hover{background:var(--surface2)}
         <!-- People -->
         <div class="sb-section">
           <div class="sb-section-label">People</div>
-          <div class="sb-item" onclick="sideNav('customers')">
+          <div class="sb-item" id="sb-cust" onclick="sideNav('customers')">
             <span class="sb-item-icon">👥</span>Customers
           </div>
-          <div class="sb-item" onclick="sideNav('credit')">
+          <div class="sb-item" id="sb-cred" onclick="sideNav('credit')">
             <span class="sb-item-icon">💳</span>Credit Accounts
           </div>
         </div>
         <!-- Insights -->
         <div class="sb-section">
           <div class="sb-section-label">Insights</div>
-          <div class="sb-item" onclick="sideNav('dashboard')">
+          <div class="sb-item" id="sb-dash" onclick="sideNav('dashboard')">
             <span class="sb-item-icon">📊</span>Dashboard
           </div>
           <div class="sb-item" id="sb-reports" onclick="sideNav('reports')">
@@ -476,10 +546,10 @@ tbody tr:hover{background:var(--surface2)}
         <!-- System -->
         <div class="sb-section">
           <div class="sb-section-label">System</div>
-          <div class="sb-item" onclick="sideNav('audit')">
+          <div class="sb-item" id="sb-audit" onclick="sideNav('audit')">
             <span class="sb-item-icon">🔍</span>Audit Log
           </div>
-          <div class="sb-item" onclick="sideNav('settings')">
+          <div class="sb-item" id="sb-settings" onclick="sideNav('settings')">
             <span class="sb-item-icon">⚙️</span>Settings
           </div>
         </div>
@@ -663,32 +733,176 @@ tbody tr:hover{background:var(--surface2)}
       </div>
 
       <!-- REPORTS VIEW -->
-      <div class="view" id="vrep">
-        <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
-          <div class="rep-header">
-            <h2>Sales reports</h2>
-            <button class="period-btn on" onclick="setPeriod('today',this)">Today</button>
-            <button class="period-btn" onclick="setPeriod('week',this)">This week</button>
-            <button class="period-btn" onclick="setPeriod('month',this)">This month</button>
-            <button class="btn-ghost" style="margin-left:auto" onclick="toast('Exporting report…')">Export PDF</button>
+      <div class="view page-view" id="vrep">
+        <div class="page-header">
+          <h2>Sales Reports</h2>
+          <div class="fbar">
+            <input type="date" id="repFrom">
+            <span style="font-size:11px;color:var(--text3)">to</span>
+            <input type="date" id="repTo">
+            <button class="period-btn on" onclick="setRepPeriod('today',this)">Today</button>
+            <button class="period-btn" onclick="setRepPeriod('week',this)">Week</button>
+            <button class="period-btn" onclick="setRepPeriod('month',this)">Month</button>
           </div>
-          <div class="rep-body">
-            <div class="kpi-grid" id="kpiGrid"></div>
-            <div class="rep-row">
-              <div class="rep-card">
-                <div class="rep-card-title">Revenue by hour</div>
-                <div class="bar-chart" id="barChart"></div>
-                <div class="bar-labels" id="barLabels"></div>
-              </div>
-              <div class="rep-card">
-                <div class="rep-card-title">Top selling products</div>
-                <div class="top-list" id="topList"></div>
-              </div>
-            </div>
-            <div class="rep-card">
-              <div class="rep-card-title">Recent transactions</div>
-              <div class="tx-list" id="txList"></div>
-            </div>
+          <button class="btn-ghost" style="margin-left:auto" onclick="exportRepCSV()">Export CSV</button>
+        </div>
+        <div class="page-body">
+          <div class="stat-g4" id="repKpis"></div>
+          <div class="page-card">
+            <div class="page-card-title">Transactions</div>
+            <div id="repTxTable"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD VIEW -->
+      <div class="view page-view" id="vdash">
+        <div class="page-header">
+          <h2>Dashboard</h2>
+          <span style="font-size:11px;color:var(--text3)" id="dashDate"></span>
+          <button class="btn-ghost" onclick="renderDashboard()">↻ Refresh</button>
+        </div>
+        <div class="page-body">
+          <div class="stat-g4" id="dashKpis"></div>
+          <div class="two-col">
+            <div class="page-card"><div class="page-card-title">Top products today</div><div id="dashTop"></div></div>
+            <div class="page-card"><div class="page-card-title">Low stock alerts</div><div id="dashAlerts"></div></div>
+          </div>
+          <div class="page-card"><div class="page-card-title">Recent activity</div><div id="dashActivity"></div></div>
+        </div>
+      </div>
+
+      <!-- QUOTATIONS VIEW -->
+      <div class="view page-view" id="vquot">
+        <div class="page-header">
+          <h2>Quotations</h2>
+          <button class="btn-primary" onclick="newQuotation()">+ New quotation</button>
+        </div>
+        <div class="page-body">
+          <div class="fbar">
+            <input type="text" placeholder="Search quotes…" id="quotSearch" oninput="renderQuotations()">
+            <select id="quotStatus" onchange="renderQuotations()">
+              <option value="">All statuses</option><option>Draft</option><option>Sent</option><option>Accepted</option><option>Expired</option>
+            </select>
+          </div>
+          <div id="quotTable"></div>
+        </div>
+      </div>
+
+      <!-- INVOICES VIEW -->
+      <div class="view page-view" id="vinvoices">
+        <div class="page-header">
+          <h2>Invoices</h2>
+          <button class="btn-primary" onclick="newInvoice()">+ New invoice</button>
+        </div>
+        <div class="page-body">
+          <div class="fbar">
+            <input type="text" placeholder="Search invoices…" id="invSrch" oninput="renderInvoices()">
+            <select id="invStatusF" onchange="renderInvoices()">
+              <option value="">All statuses</option><option>Pending</option><option>Paid</option><option>Overdue</option>
+            </select>
+          </div>
+          <div id="invoicesTable"></div>
+        </div>
+      </div>
+
+      <!-- SALES HISTORY VIEW -->
+      <div class="view page-view" id="vhist">
+        <div class="page-header">
+          <h2>Sales History</h2>
+          <button class="btn-ghost" onclick="exportHistoryCSV()">Export CSV</button>
+        </div>
+        <div class="page-body">
+          <div class="fbar">
+            <input type="date" id="histFrom">
+            <span style="font-size:11px;color:var(--text3)">to</span>
+            <input type="date" id="histTo">
+            <select id="histMethod"><option value="">All methods</option><option>card</option><option>cash</option><option>split</option></select>
+            <select id="histType"><option value="">All types</option><option>sale</option><option>refund</option></select>
+            <button class="btn-ghost" onclick="renderHistory()">Filter</button>
+            <button class="btn-ghost" onclick="clearHistFilter()">Clear</button>
+          </div>
+          <div id="histTable"></div>
+        </div>
+      </div>
+
+      <!-- RETURNS VIEW -->
+      <div class="view page-view" id="vreturns">
+        <div class="page-header">
+          <h2>Returns</h2>
+          <button class="btn-primary" onclick="newReturn()">+ Process return</button>
+        </div>
+        <div class="page-body">
+          <div id="returnsTable"></div>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS VIEW -->
+      <div class="view page-view" id="vcust">
+        <div class="page-header">
+          <h2>Customers</h2>
+          <div style="position:relative">
+            <svg style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text3);fill:none" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input style="padding:6px 11px 6px 28px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surface2);outline:none;width:190px" type="text" placeholder="Search customers…" id="custSearch" oninput="renderCustomers()">
+          </div>
+          <button class="btn-primary" onclick="addCustomer()">+ Add customer</button>
+        </div>
+        <div class="page-body">
+          <div class="two-col" style="align-items:start">
+            <div class="page-card"><div class="page-card-title">All customers</div><div id="custList"></div></div>
+            <div class="page-card" id="custDetail"><div class="empty-pg"><div class="empty-pg-ic">👥</div><div class="empty-pg-t">No customer selected</div><div class="empty-pg-s">Click a customer to view details</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CREDIT ACCOUNTS VIEW -->
+      <div class="view page-view" id="vcredit">
+        <div class="page-header">
+          <h2>Credit Accounts</h2>
+          <button class="btn-primary" onclick="addCreditAccount()">+ New account</button>
+        </div>
+        <div class="page-body">
+          <div class="stat-g3" id="creditStats"></div>
+          <div id="creditTable"></div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG VIEW -->
+      <div class="view page-view" id="vaudit">
+        <div class="page-header">
+          <h2>Audit Log</h2>
+          <select id="auditFilter" onchange="renderAuditLog()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surface2);color:var(--text);outline:none">
+            <option value="">All events</option><option value="sale">Sales</option><option value="refund">Refunds</option><option value="stock">Stock</option><option value="system">System</option>
+          </select>
+          <button class="btn-ghost" onclick="clearAuditLog()">Clear log</button>
+        </div>
+        <div class="page-body">
+          <div class="page-card"><div id="auditList"></div></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS VIEW -->
+      <div class="view page-view" id="vsettings">
+        <div class="page-header">
+          <h2>Settings</h2>
+          <button class="btn-primary" onclick="saveSettings()">Save changes</button>
+        </div>
+        <div class="page-body">
+          <div class="settings-sec">
+            <div class="settings-sec-title">Store</div>
+            <div class="settings-row"><div class="settings-rl"><strong>Store name</strong><span>Shown on receipts</span></div><input class="settings-inp" type="text" id="cfg-name" value="Ceatea"></div>
+            <div class="settings-row"><div class="settings-rl"><strong>Currency symbol</strong><span>Prefix for all prices</span></div><input class="settings-inp" type="text" id="cfg-currency" value="Rs."></div>
+            <div class="settings-row"><div class="settings-rl"><strong>Tax rate (%)</strong><span>0 to disable</span></div><input class="settings-inp" type="number" id="cfg-tax" min="0" max="100" step="0.5" value="0"></div>
+          </div>
+          <div class="settings-sec">
+            <div class="settings-sec-title">Receipt</div>
+            <div class="settings-row"><div class="settings-rl"><strong>Footer message</strong><span>Printed at bottom of receipts</span></div><input class="settings-inp" type="text" id="cfg-footer" placeholder="Thank you for shopping with us!"></div>
+            <div class="settings-row"><div class="settings-rl"><strong>Auto-print receipt</strong><span>Send to printer after each sale</span></div><label class="tog"><input type="checkbox" id="cfg-autoprint"><span class="tog-sl"></span></label></div>
+          </div>
+          <div class="settings-sec">
+            <div class="settings-sec-title">System</div>
+            <div class="settings-row"><div class="settings-rl"><strong>Age verification prompts</strong><span>Show confirmation for 18+ items</span></div><label class="tog"><input type="checkbox" id="cfg-ageverify" checked><span class="tog-sl"></span></label></div>
+            <div class="settings-row"><div class="settings-rl"><strong>Low stock threshold override</strong><span>Leave blank to use per-product levels</span></div><input class="settings-inp" type="number" id="cfg-lowstock" min="0" placeholder="Per product"></div>
           </div>
         </div>
       </div>
@@ -786,29 +1000,39 @@ function toggleSidebar(){
 }
 
 // ── SIDENAV ──
+const VIEW_MAP = {
+  sell:'pos',products:'inv',reports:'rep',dashboard:'dash',
+  quotations:'quot',invoices:'invoices',history:'hist',
+  returns:'returns',customers:'cust',credit:'credit',
+  audit:'audit',settings:'settings'
+};
+const SB_MAP = {
+  sell:'sb-sell',products:'sb-products',reports:'sb-reports',
+  dashboard:'sb-dash',quotations:'sb-quot',invoices:'sb-inv',
+  history:'sb-hist',returns:'sb-ret',customers:'sb-cust',
+  credit:'sb-cred',audit:'sb-audit',settings:'sb-settings'
+};
 function sideNav(section){
-  if(section === 'sell'){
-    switchView('pos');
-    document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
-    document.getElementById('sb-sell').classList.add('active');
-  } else if(section === 'products'){
-    switchView('inv');
-    document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
-    document.getElementById('sb-products').classList.add('active');
-  } else if(section === 'reports' || section === 'dashboard'){
-    switchView('rep');
-    document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
-    document.getElementById('sb-reports').classList.add('active');
-  } else {
-    toast('Coming soon');
-  }
+  const v=VIEW_MAP[section];
+  if(!v)return;
+  switchView(v);
+  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
+  const sbId=SB_MAP[section];
+  if(sbId)document.getElementById(sbId)?.classList.add('active');
 }
-
 function switchView(v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   document.getElementById('v'+v).classList.add('active');
   if(v==='inv')renderInventory('');
   if(v==='rep')renderReports();
+  if(v==='dash')renderDashboard();
+  if(v==='quot')renderQuotations();
+  if(v==='invoices')renderInvoices();
+  if(v==='hist')renderHistory();
+  if(v==='returns')renderReturns();
+  if(v==='cust')renderCustomers();
+  if(v==='credit')renderCredit();
+  if(v==='audit')renderAuditLog();
 }
 
 // ── RIGHT PANEL TABS ──
@@ -1184,7 +1408,9 @@ function showCardModal(total){
 }
 function processPayment(total, method, change){
   cart.forEach(ci=>{const p=products.find(x=>x.id===ci.id);if(p)p.stock=Math.max(0,p.stock-ci.qty);});
-  transactions.unshift({ref:'#'+String(orderNum).padStart(4,'0'),type:'sale',method,total,items:[...cart],time:new Date()});
+  const ref='#'+String(orderNum).padStart(4,'0');
+  transactions.unshift({ref,type:'sale',method,total,items:[...cart],time:new Date()});
+  addAudit('sale',`Sale ${ref} — Rs.${total.toFixed(2)} via ${method} (${cart.length} item${cart.length!==1?'s':''})`);
   showReceiptModal(total,method,change);
 }
 function showReceiptModal(total,method,change){
@@ -1287,7 +1513,7 @@ function renderInventory(q=''){
   }).join('');
   renderInvStats();
 }
-function updateStock(id,v){const p=products.find(x=>x.id===id);if(p){p.stock=Math.max(0,parseInt(v)||0);renderGrid();renderInvStats();toast('Stock updated');}}
+function updateStock(id,v){const p=products.find(x=>x.id===id);if(p){const old=p.stock;p.stock=Math.max(0,parseInt(v)||0);renderGrid();renderInvStats();toast('Stock updated');addAudit('stock',`${p.em} ${p.name} stock updated: ${old} → ${p.stock}`);}}
 function updatePrice(id,v){const p=products.find(x=>x.id===id);if(p){p.price=Math.max(0,parseFloat(v)||0);renderGrid();toast('Price updated');}}
 function renderInvStats(){
   const total=products.length,val=products.reduce((s,p)=>s+p.price*p.stock,0),low=products.filter(p=>p.stock>0&&p.stock<=p.low).length,out=products.filter(p=>p.stock===0).length;
@@ -1303,7 +1529,7 @@ function restockModal(id){
   openModal(
     `<p style="font-size:12px;color:var(--text2);margin-bottom:10px">Current stock: <strong>${p.stock}</strong> units</p><label class="form-label">Add units</label><input class="form-input" type="number" id="rqty" value="10" min="1"><label class="form-label">Supplier reference</label><input class="form-input" type="text" id="rref" placeholder="PO-00123">`,
     'Add stock','Cancel',
-    ()=>{const q=parseInt(document.getElementById('rqty').value)||0;if(q>0){p.stock+=q;closeModal();renderInventory('');renderGrid();toast(`+${q} units added to ${p.name}`);}},
+    ()=>{const q=parseInt(document.getElementById('rqty').value)||0;if(q>0){p.stock+=q;closeModal();renderInventory('');renderGrid();toast(`+${q} units added to ${p.name}`);addAudit('stock',`Restocked ${p.em} ${p.name} +${q} units (now ${p.stock})`);}},
     closeModal,
     'Restock — '+p.name
   );
@@ -1343,43 +1569,72 @@ function exportCSV(){
 }
 
 // ── REPORTS ──
-let period='today';
-function setPeriod(p,el){period=p;document.querySelectorAll('.period-btn').forEach(x=>x.classList.remove('on'));el.classList.add('on');renderReports();}
 function renderReports(){
-  const f=period==='today'?1:period==='week'?7:30;
-  const rev=transactions.filter(t=>t.type==='sale').reduce((s,t)=>s+t.total,0)*(f*0.7+Math.random()*f*0.5);
-  const cnt=Math.floor(transactions.length*f*0.5+f*4),avg=rev/Math.max(cnt,1),refunds=transactions.filter(t=>t.type==='refund').reduce((s,t)=>s+t.total,0)*f*0.08;
-  document.getElementById('kpiGrid').innerHTML=`
-    <div class="kpi-card"><div class="kpi-label">Revenue</div><div class="kpi-val">Rs.${rev.toFixed(0)}</div><div class="kpi-change up">↑ 11% vs prior ${period}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Transactions</div><div class="kpi-val">${cnt}</div><div class="kpi-change up">↑ 7% vs prior ${period}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Avg order</div><div class="kpi-val">Rs.${avg.toFixed(2)}</div><div class="kpi-change dn">↓ 2% vs prior ${period}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Refunds</div><div class="kpi-val">Rs.${refunds.toFixed(2)}</div><div class="kpi-change dn">↑ 1 this ${period}</div></div>
+  const from=document.getElementById('repFrom')?.value;
+  const to=document.getElementById('repTo')?.value;
+  const fromD=from?new Date(from):null;
+  const toD=to?(()=>{const d=new Date(to);d.setHours(23,59,59,999);return d;})():null;
+  const filtered=transactions.filter(t=>{
+    if(fromD&&t.time<fromD)return false;
+    if(toD&&t.time>toD)return false;
+    return true;
+  });
+  const sales=filtered.filter(t=>t.type==='sale');
+  const refunds=filtered.filter(t=>t.type==='refund');
+  const rev=sales.reduce((s,t)=>s+t.total,0);
+  const refundAmt=refunds.reduce((s,t)=>s+t.total,0);
+  const avg=sales.length?rev/sales.length:0;
+  document.getElementById('repKpis').innerHTML=`
+    <div class="stat-c"><div class="lbl">Revenue</div><div class="val">Rs.${rev.toFixed(2)}</div><div class="sub">${sales.length} sale${sales.length!==1?'s':''}</div></div>
+    <div class="stat-c"><div class="lbl">Transactions</div><div class="val">${filtered.length}</div><div class="sub">${refunds.length} refund${refunds.length!==1?'s':''}</div></div>
+    <div class="stat-c"><div class="lbl">Avg order</div><div class="val">Rs.${avg.toFixed(2)}</div><div class="sub">Per sale</div></div>
+    <div class="stat-c"><div class="lbl">Refunds total</div><div class="val">Rs.${refundAmt.toFixed(2)}</div><div class="sub">${refunds.length} processed</div></div>
   `;
-  const hrs=['9am','10','11','12','1pm','2','3','4','5','6'],vals=hrs.map(()=>Math.floor(40+Math.random()*200)*f/4),mx=Math.max(...vals);
-  document.getElementById('barChart').innerHTML=vals.map(v=>`<div class="bar-col"><div class="bar-fill" style="height:${Math.max(3,(v/mx)*100)}%"></div></div>`).join('');
-  document.getElementById('barLabels').innerHTML=hrs.map(h=>`<div class="bar-lbl">${h}</div>`).join('');
-  const sales={};
-  transactions.filter(t=>t.type==='sale').forEach(t=>t.items.forEach(i=>{if(!sales[i.id])sales[i.id]={...i,sold:0,rev:0};sales[i.id].sold+=i.qty;sales[i.id].rev+=i.price*i.qty;}));
-  const top=Object.values(sales).sort((a,b)=>b.rev-a.rev).slice(0,6),mxR=top[0]?.rev||1;
-  document.getElementById('topList').innerHTML=top.map((it,i)=>`
-    <div class="top-item">
-      <span class="top-rank">${i+1}</span>
-      <span class="top-em">${it.em}</span>
-      <span class="top-name">${it.name}</span>
-      <div class="top-bar-bg"><div class="top-bar-fill" style="width:${(it.rev/mxR)*100}%"></div></div>
-      <span class="top-rev">Rs.${it.rev.toFixed(0)}</span>
-    </div>`).join('');
-  document.getElementById('txList').innerHTML=transactions.slice(0,10).map(tx=>`
-    <div class="tx-row">
-      <div class="tx-dot ${tx.type}">${tx.type==='sale'?'🛍':'↩'}</div>
-      <div class="tx-info">
-        <div class="tx-ref">${tx.ref}</div>
-        <div class="tx-meta">${tx.items.length} item${tx.items.length!==1?'s':''} · ${tx.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
-      </div>
-      <span class="tx-amt ${tx.type==='refund'?'refund':''}">${tx.type==='refund'?'-':''}Rs.${tx.total.toFixed(2)}</span>
-      <span class="method-tag ${tx.method}">${tx.method}</span>
-      ${tx.type==='sale'?`<button class="refund-row-btn" onclick="showRefund('${tx.ref}')">Refund</button>`:''}
-    </div>`).join('');
+  if(!filtered.length){
+    document.getElementById('repTxTable').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">📊</div><div class="empty-pg-t">No transactions in range</div><div class="empty-pg-s">Select a date range or period above</div></div>';
+    return;
+  }
+  document.getElementById('repTxTable').innerHTML=`
+    <table class="dt">
+      <thead><tr><th>Ref</th><th>Date &amp; time</th><th>Type</th><th>Items</th><th>Method</th><th>Amount</th><th></th></tr></thead>
+      <tbody>${filtered.map(tx=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">${tx.ref}</span></td>
+          <td>${tx.time.toLocaleDateString('en-GB')} ${tx.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td><span class="badge ${tx.type==='sale'?'bg-green':'bg-red'}">${tx.type}</span></td>
+          <td>${tx.items.length} item${tx.items.length!==1?'s':''}</td>
+          <td><span class="method-tag ${tx.method}">${tx.method}</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${tx.type==='refund'?'var(--red)':'var(--text)'}">${tx.type==='refund'?'-':''}Rs.${tx.total.toFixed(2)}</td>
+          <td>${tx.type==='sale'?`<button class="refund-row-btn" onclick="showRefund('${tx.ref}')">Refund</button>`:''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+function setRepPeriod(p,el){
+  const now=new Date();
+  const from=new Date(now);
+  document.querySelectorAll('.period-btn').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  if(p==='today') from.setHours(0,0,0,0);
+  else if(p==='week') from.setDate(from.getDate()-7);
+  else from.setDate(from.getDate()-30);
+  const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  document.getElementById('repFrom').value=fmt(from);
+  document.getElementById('repTo').value=fmt(now);
+  renderReports();
+}
+function exportRepCSV(){
+  const from=document.getElementById('repFrom')?.value;
+  const to=document.getElementById('repTo')?.value;
+  const fromD=from?new Date(from):null;
+  const toD=to?(()=>{const d=new Date(to);d.setHours(23,59,59,999);return d;})():null;
+  const list=transactions.filter(t=>{
+    if(fromD&&t.time<fromD)return false;
+    if(toD&&t.time>toD)return false;
+    return true;
+  });
+  const rows=[['Ref','Date','Time','Type','Method','Total'],...list.map(t=>[t.ref,t.time.toLocaleDateString('en-GB'),t.time.toLocaleTimeString('en-GB'),t.type,t.method,t.total.toFixed(2)])];
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));a.download='report.csv';a.click();toast('CSV exported');
 }
 function showRefund(ref){
   const tx=transactions.find(t=>t.ref===ref);
@@ -1390,14 +1645,466 @@ function showRefund(ref){
     <div style="margin-top:10px"><div class="form-label">Reason</div><select class="form-select"><option>Customer return</option><option>Defective item</option><option>Wrong item</option><option>Other</option></select></div>`,
     'Process refund','Cancel',
     ()=>{
-      const amt=tx.items.filter((_,i)=>document.getElementById('ri'+i)?.checked).reduce((s,x)=>s+x.price*x.qty,0)*1.2;
-      transactions.unshift({ref:tx.ref+'R',type:'refund',method:tx.method,total:parseFloat(amt.toFixed(2)),items:tx.items,time:new Date()});
+      const amt=tx.items.filter((_,i)=>document.getElementById('ri'+i)?.checked).reduce((s,x)=>s+x.price*x.qty,0);
+      const ref=tx.ref+'R';
+      transactions.unshift({ref,type:'refund',method:tx.method,total:parseFloat(amt.toFixed(2)),items:tx.items,time:new Date()});
+      addAudit('refund',`Refund ${ref} — Rs.${amt.toFixed(2)} (original: ${tx.ref})`);
       closeModal();renderReports();toast('Refund of Rs.'+amt.toFixed(2)+' processed');
     },
     closeModal,
     'Process refund — '+tx.ref
   );
   setTimeout(()=>{const btn=document.getElementById('mConfirm');if(btn)btn.style.background='var(--red)';},10);
+}
+
+// ── AUDIT LOG ──
+let auditLog = [];
+function addAudit(type, msg){
+  auditLog.unshift({type, msg, time:new Date()});
+  if(auditLog.length>300)auditLog.pop();
+}
+function renderAuditLog(){
+  const f=document.getElementById('auditFilter')?.value||'';
+  const list=f?auditLog.filter(e=>e.type===f):auditLog;
+  const icons={sale:'🛍',refund:'↩',stock:'📦',system:'⚙️'};
+  document.getElementById('auditList').innerHTML=list.length?list.map(e=>`
+    <div class="audit-row">
+      <div class="audit-ic ${e.type}">${icons[e.type]||'📝'}</div>
+      <div>
+        <div class="audit-msg">${e.msg}</div>
+        <div class="audit-time">${e.time.toLocaleDateString('en-GB')} ${e.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div>
+      </div>
+    </div>`).join('')
+    :'<div class="empty-pg"><div class="empty-pg-ic">🔍</div><div class="empty-pg-t">No audit events yet</div><div class="empty-pg-s">Events appear here as they happen</div></div>';
+}
+function clearAuditLog(){
+  auditLog=[];addAudit('system','Audit log cleared by user');renderAuditLog();toast('Audit log cleared');
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const today=new Date();today.setHours(0,0,0,0);
+  document.getElementById('dashDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  const todayTx=transactions.filter(t=>{const d=new Date(t.time);d.setHours(0,0,0,0);return d.getTime()===today.getTime()&&t.type==='sale';});
+  const rev=todayTx.reduce((s,t)=>s+t.total,0);
+  const cnt=todayTx.length;
+  const avg=cnt?rev/cnt:0;
+  const low=products.filter(p=>p.stock>0&&p.stock<=p.low).length;
+  const out=products.filter(p=>p.stock===0).length;
+  document.getElementById('dashKpis').innerHTML=`
+    <div class="stat-c"><div class="lbl">Today's revenue</div><div class="val">Rs.${rev.toFixed(2)}</div><div class="sub">${cnt} transaction${cnt!==1?'s':''}</div></div>
+    <div class="stat-c"><div class="lbl">Avg order today</div><div class="val">Rs.${avg.toFixed(2)}</div><div class="sub">${cnt?cnt+' sales':'No sales yet'}</div></div>
+    <div class="stat-c"><div class="lbl" style="color:var(--amber)">Low stock</div><div class="val" style="color:var(--amber)">${low}</div><div class="sub">Need restocking</div></div>
+    <div class="stat-c"><div class="lbl" style="color:var(--red)">Out of stock</div><div class="val" style="color:var(--red)">${out}</div><div class="sub">Unavailable now</div></div>
+  `;
+  const salesMap={};
+  todayTx.forEach(t=>t.items.forEach(i=>{if(!salesMap[i.id])salesMap[i.id]={...i,sold:0,rev:0};salesMap[i.id].sold+=i.qty;salesMap[i.id].rev+=i.price*i.qty;}));
+  const top=Object.values(salesMap).sort((a,b)=>b.rev-a.rev).slice(0,5);
+  const mxR=top[0]?.rev||1;
+  document.getElementById('dashTop').innerHTML=top.length?top.map((it,i)=>`
+    <div class="top-item">
+      <span class="top-rank">${i+1}</span>
+      <span class="top-em">${it.em}</span>
+      <span class="top-name">${it.name}</span>
+      <div class="top-bar-bg"><div class="top-bar-fill" style="width:${(it.rev/mxR)*100}%"></div></div>
+      <span class="top-rev">Rs.${it.rev.toFixed(2)}</span>
+    </div>`).join('')
+    :'<div class="empty-pg"><div class="empty-pg-ic">📦</div><div class="empty-pg-t">No sales today yet</div></div>';
+  const lowItems=products.filter(p=>p.stock<=p.low).sort((a,b)=>a.stock-b.stock).slice(0,8);
+  document.getElementById('dashAlerts').innerHTML=lowItems.length?lowItems.map(p=>`
+    <div class="alert-item">
+      <div class="alert-dot ${p.stock===0?'red':'amber'}"></div>
+      <span style="font-size:15px">${p.em}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${p.name}</div>
+        <div style="font-size:10px;color:var(--text3)">${p.stock===0?'Out of stock':`${p.stock} left`}</div>
+      </div>
+      <button class="tbl-action" onclick="restockModal(${p.id})">Restock</button>
+    </div>`).join('')
+    :'<div class="empty-pg"><div class="empty-pg-ic">✅</div><div class="empty-pg-t">All stock levels OK</div></div>';
+  document.getElementById('dashActivity').innerHTML=transactions.slice(0,8).map(tx=>`
+    <div class="tx-row">
+      <div class="tx-dot ${tx.type}">${tx.type==='sale'?'🛍':'↩'}</div>
+      <div class="tx-info">
+        <div class="tx-ref">${tx.ref}</div>
+        <div class="tx-meta">${tx.items.length} item${tx.items.length!==1?'s':''} · ${tx.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <span class="tx-amt ${tx.type==='refund'?'refund':''}">${tx.type==='refund'?'-':''}Rs.${tx.total.toFixed(2)}</span>
+      <span class="method-tag ${tx.method}">${tx.method}</span>
+    </div>`).join('')||'<div class="empty-pg"><div class="empty-pg-t">No activity yet</div></div>';
+}
+
+// ── QUOTATIONS ──
+let quotations=[
+  {id:'QT-001',customer:'Aisha Perera',items:[{name:'Milk 2L',qty:2,price:1.55},{name:'Cheddar 400g',qty:1,price:3.20}],total:6.30,status:'Sent',date:new Date('2025-04-20')},
+  {id:'QT-002',customer:'Walk-in',items:[{name:'Chicken 500g',qty:3,price:4.50}],total:13.50,status:'Draft',date:new Date('2025-05-01')},
+  {id:'QT-003',customer:'Rohan Silva',items:[{name:'Coca-Cola 6pk',qty:2,price:5.50}],total:11.00,status:'Accepted',date:new Date('2025-04-15')},
+];
+let nextQuotId=4;
+function quotBadge(s){return{Draft:'bg-gray',Sent:'bg-blue',Accepted:'bg-green',Expired:'bg-red'}[s]||'bg-gray';}
+function renderQuotations(){
+  const q=(document.getElementById('quotSearch')?.value||'').toLowerCase();
+  const s=document.getElementById('quotStatus')?.value||'';
+  const list=quotations.filter(x=>(!s||x.status===s)&&(!q||x.customer.toLowerCase().includes(q)||x.id.toLowerCase().includes(q)));
+  if(!list.length){document.getElementById('quotTable').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">📋</div><div class="empty-pg-t">No quotations found</div></div>';return;}
+  document.getElementById('quotTable').innerHTML=`
+    <table class="dt">
+      <thead><tr><th>ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>${list.map(q=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">${q.id}</span></td>
+          <td>${q.customer}</td>
+          <td>${q.items.length}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700">Rs.${q.total.toFixed(2)}</td>
+          <td><span class="badge ${quotBadge(q.status)}">${q.status}</span></td>
+          <td>${q.date.toLocaleDateString('en-GB')}</td>
+          <td style="display:flex;gap:5px">
+            <button class="tbl-action" onclick="convertToInvoice('${q.id}')">→ Invoice</button>
+            <button class="tbl-action" onclick="deleteQuotation('${q.id}')">Delete</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+function newQuotation(){
+  openModal(
+    `<div class="form-label">Customer name</div><input class="form-input" type="text" id="q-cust" placeholder="Name or 'Walk-in'">
+    <div class="form-label">Items (one per line: name, qty, price)</div>
+    <textarea class="form-input" id="q-items" rows="4" placeholder="Milk 2L, 2, 1.55&#10;Cheddar, 1, 3.20" style="resize:vertical;height:80px"></textarea>
+    <div class="form-label">Status</div>
+    <select class="form-select" id="q-status"><option>Draft</option><option>Sent</option></select>`,
+    'Create','Cancel',
+    ()=>{
+      const cust=document.getElementById('q-cust').value.trim()||'Walk-in';
+      const rawItems=(document.getElementById('q-items').value||'').split('\n').filter(l=>l.trim());
+      const items=rawItems.map(l=>{const p=l.split(',');return{name:(p[0]||'Item').trim(),qty:parseInt(p[1])||1,price:parseFloat(p[2])||0};});
+      const total=items.reduce((s,i)=>s+i.qty*i.price,0);
+      const status=document.getElementById('q-status').value;
+      quotations.unshift({id:'QT-'+String(nextQuotId++).padStart(3,'0'),customer:cust,items,total,status,date:new Date()});
+      closeModal();renderQuotations();toast('Quotation created');
+      addAudit('system',`Quotation created for ${cust}`);
+    },closeModal,'New Quotation'
+  );
+}
+function convertToInvoice(qid){
+  const q=quotations.find(x=>x.id===qid);if(!q)return;
+  const id='INV-'+String(nextInvId++).padStart(3,'0');
+  const due=new Date();due.setDate(due.getDate()+30);
+  invoicesData.unshift({id,customer:q.customer,total:q.total,status:'Pending',date:new Date(),due,items:q.items});
+  q.status='Accepted';renderQuotations();toast(`Invoice ${id} created from ${qid}`);
+  addAudit('system',`Quotation ${qid} converted to invoice ${id}`);
+}
+function deleteQuotation(qid){quotations=quotations.filter(x=>x.id!==qid);renderQuotations();toast('Quotation deleted');}
+
+// ── INVOICES ──
+let invoicesData=[
+  {id:'INV-001',customer:'Aisha Perera',total:6.30,status:'Paid',date:new Date('2025-04-21'),due:new Date('2025-05-05'),items:[]},
+  {id:'INV-002',customer:'Rohan Silva',total:11.00,status:'Pending',date:new Date('2025-04-16'),due:new Date('2025-05-16'),items:[]},
+  {id:'INV-003',customer:'Walk-in',total:21.60,status:'Overdue',date:new Date('2025-04-01'),due:new Date('2025-04-15'),items:[]},
+];
+let nextInvId=4;
+function invBadge(s){return{Pending:'bg-amber',Paid:'bg-green',Overdue:'bg-red'}[s]||'bg-gray';}
+function renderInvoices(){
+  const q=(document.getElementById('invSrch')?.value||'').toLowerCase();
+  const s=document.getElementById('invStatusF')?.value||'';
+  const list=invoicesData.filter(x=>(!s||x.status===s)&&(!q||x.customer.toLowerCase().includes(q)||x.id.toLowerCase().includes(q)));
+  if(!list.length){document.getElementById('invoicesTable').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">🧾</div><div class="empty-pg-t">No invoices found</div></div>';return;}
+  document.getElementById('invoicesTable').innerHTML=`
+    <table class="dt">
+      <thead><tr><th>ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Due date</th><th>Actions</th></tr></thead>
+      <tbody>${list.map(inv=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">${inv.id}</span></td>
+          <td>${inv.customer}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700">Rs.${inv.total.toFixed(2)}</td>
+          <td><span class="badge ${invBadge(inv.status)}">${inv.status}</span></td>
+          <td>${inv.due.toLocaleDateString('en-GB')}</td>
+          <td style="display:flex;gap:5px">
+            ${inv.status!=='Paid'?`<button class="tbl-action" onclick="markInvoicePaid('${inv.id}')">Mark paid</button>`:''}
+            <button class="tbl-action" onclick="deleteInvoice('${inv.id}')">Delete</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+function markInvoicePaid(id){
+  const inv=invoicesData.find(x=>x.id===id);
+  if(inv){inv.status='Paid';renderInvoices();toast(`Invoice ${id} marked paid`);addAudit('system',`Invoice ${id} marked paid`);}
+}
+function deleteInvoice(id){invoicesData=invoicesData.filter(x=>x.id!==id);renderInvoices();toast('Invoice deleted');}
+function newInvoice(){
+  openModal(
+    `<div class="form-label">Customer name</div><input class="form-input" type="text" id="ni-cust" placeholder="Customer name">
+    <div class="form-label">Total amount (Rs.)</div><input class="form-input" type="number" id="ni-total" min="0" step="0.01" placeholder="0.00">
+    <div class="form-label">Due date</div><input class="form-input" type="date" id="ni-due">`,
+    'Create','Cancel',
+    ()=>{
+      const cust=document.getElementById('ni-cust').value.trim()||'Walk-in';
+      const total=parseFloat(document.getElementById('ni-total').value)||0;
+      const dueStr=document.getElementById('ni-due').value;
+      const due=dueStr?new Date(dueStr):new Date(Date.now()+30*86400000);
+      const id='INV-'+String(nextInvId++).padStart(3,'0');
+      invoicesData.unshift({id,customer:cust,total,status:'Pending',date:new Date(),due,items:[]});
+      closeModal();renderInvoices();toast(`Invoice ${id} created`);
+      addAudit('system',`Invoice ${id} created for ${cust}`);
+    },closeModal,'New Invoice'
+  );
+}
+
+// ── SALES HISTORY ──
+function renderHistory(){
+  const from=document.getElementById('histFrom')?.value;
+  const to=document.getElementById('histTo')?.value;
+  const method=document.getElementById('histMethod')?.value||'';
+  const type=document.getElementById('histType')?.value||'';
+  const fromD=from?new Date(from):null;
+  const toD=to?(()=>{const d=new Date(to);d.setHours(23,59,59,999);return d;})():null;
+  const list=transactions.filter(t=>{
+    if(fromD&&t.time<fromD)return false;
+    if(toD&&t.time>toD)return false;
+    if(method&&t.method!==method)return false;
+    if(type&&t.type!==type)return false;
+    return true;
+  });
+  if(!list.length){document.getElementById('histTable').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">🕐</div><div class="empty-pg-t">No transactions match</div><div class="empty-pg-s">Adjust the filters above</div></div>';return;}
+  document.getElementById('histTable').innerHTML=`
+    <table class="dt">
+      <thead><tr><th>Ref</th><th>Date &amp; time</th><th>Type</th><th>Items</th><th>Method</th><th>Total</th><th></th></tr></thead>
+      <tbody>${list.map(tx=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">${tx.ref}</span></td>
+          <td>${tx.time.toLocaleDateString('en-GB')} ${tx.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td><span class="badge ${tx.type==='sale'?'bg-green':'bg-red'}">${tx.type}</span></td>
+          <td>${tx.items.length}</td>
+          <td><span class="method-tag ${tx.method}">${tx.method}</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${tx.type==='refund'?'var(--red)':'var(--text)'}">${tx.type==='refund'?'-':''}Rs.${tx.total.toFixed(2)}</td>
+          <td>${tx.type==='sale'?`<button class="refund-row-btn" onclick="showRefund('${tx.ref}')">Refund</button>`:''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+function clearHistFilter(){
+  ['histFrom','histTo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['histMethod','histType'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderHistory();
+}
+function exportHistoryCSV(){
+  const rows=[['Ref','Date','Time','Type','Method','Total'],...transactions.map(t=>[t.ref,t.time.toLocaleDateString('en-GB'),t.time.toLocaleTimeString('en-GB'),t.type,t.method,t.total.toFixed(2)])];
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));a.download='sales-history.csv';a.click();toast('CSV exported');
+}
+
+// ── RETURNS ──
+function renderReturns(){
+  const refunds=transactions.filter(t=>t.type==='refund');
+  if(!refunds.length){document.getElementById('returnsTable').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">↩</div><div class="empty-pg-t">No returns yet</div><div class="empty-pg-s">Use the Refund button on any sale to process a return</div></div>';return;}
+  document.getElementById('returnsTable').innerHTML=`
+    <table class="dt">
+      <thead><tr><th>Return ref</th><th>Original ref</th><th>Date &amp; time</th><th>Items</th><th>Method</th><th>Refund amount</th></tr></thead>
+      <tbody>${refunds.map(tx=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-weight:700">${tx.ref}</span></td>
+          <td><span style="font-family:'JetBrains Mono',monospace;color:var(--text3)">${tx.ref.replace(/R$/,'')}</span></td>
+          <td>${tx.time.toLocaleDateString('en-GB')} ${tx.time.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td>${tx.items.length} item${tx.items.length!==1?'s':''}</td>
+          <td><span class="method-tag ${tx.method}">${tx.method}</span></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--red)">-Rs.${tx.total.toFixed(2)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+function newReturn(){
+  const sales=transactions.filter(t=>t.type==='sale');
+  if(!sales.length){toast('No sales to return');return;}
+  openModal(
+    `<div class="form-label">Select sale to return</div>
+    <select class="form-select" id="ret-tx">${sales.slice(0,15).map(t=>`<option value="${t.ref}">${t.ref} — Rs.${t.total.toFixed(2)} · ${t.time.toLocaleDateString('en-GB')}</option>`).join('')}</select>`,
+    'Continue','Cancel',
+    ()=>{const ref=document.getElementById('ret-tx').value;closeModal();showRefund(ref);},
+    closeModal,'Process Return'
+  );
+}
+
+// ── CUSTOMERS ──
+let customers=[
+  {id:1,name:'Aisha Perera',email:'aisha@example.com',phone:'0771 234 567',joined:new Date('2025-01-10'),creditBalance:0},
+  {id:2,name:'Rohan Silva',email:'rohan@example.com',phone:'0712 345 678',joined:new Date('2025-02-14'),creditBalance:50},
+  {id:3,name:'Nimal Fernando',email:'nimal@example.com',phone:'0765 432 100',joined:new Date('2025-03-01'),creditBalance:0},
+];
+let selectedCustId=null;
+function renderCustomers(){
+  const q=(document.getElementById('custSearch')?.value||'').toLowerCase();
+  const list=customers.filter(c=>!q||c.name.toLowerCase().includes(q)||c.email.toLowerCase().includes(q));
+  document.getElementById('custList').innerHTML=list.length?list.map(c=>`
+    <div class="cust-row${selectedCustId===c.id?' sel':''}" onclick="selectCustomer(${c.id})">
+      <div class="cust-av">${c.name.charAt(0).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div class="cust-name">${c.name}</div>
+        <div class="cust-meta">${c.email} · Joined ${c.joined.toLocaleDateString('en-GB')}</div>
+      </div>
+      ${c.creditBalance>0?`<span class="badge bg-amber">Rs.${c.creditBalance} credit</span>`:''}
+    </div>`).join('')
+    :'<div class="empty-pg"><div class="empty-pg-ic">👥</div><div class="empty-pg-t">No customers found</div></div>';
+  if(selectedCustId)showCustomerDetail(selectedCustId);
+}
+function selectCustomer(id){selectedCustId=id;renderCustomers();showCustomerDetail(id);}
+function showCustomerDetail(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  document.getElementById('custDetail').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div class="cust-av" style="width:44px;height:44px;font-size:18px">${c.name.charAt(0)}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">${c.name}</div>
+        <div style="font-size:11px;color:var(--text3)">${c.email}</div>
+      </div>
+      <button class="btn-ghost" onclick="editCustomer(${c.id})">Edit</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="stat-c"><div class="lbl">Phone</div><div style="font-size:13px;font-weight:600;margin-top:3px">${c.phone||'—'}</div></div>
+      <div class="stat-c"><div class="lbl">Credit balance</div><div style="font-size:18px;font-weight:700;color:${c.creditBalance>0?'var(--amber)':'var(--text)'}">Rs.${c.creditBalance.toFixed(2)}</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Customer since ${c.joined.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn-primary" onclick="addCreditToCustomer(${c.id})">Add credit</button>
+      <button class="btn-ghost" onclick="deleteCustomer(${c.id})">Delete</button>
+    </div>`;
+}
+function addCustomer(){
+  openModal(
+    `<div class="form-label">Full name</div><input class="form-input" type="text" id="ac-name" placeholder="Jane Smith">
+    <div class="form-label">Email</div><input class="form-input" type="email" id="ac-email" placeholder="jane@example.com">
+    <div class="form-label">Phone</div><input class="form-input" type="tel" id="ac-phone" placeholder="0771 234 567">`,
+    'Add customer','Cancel',
+    ()=>{
+      const name=document.getElementById('ac-name').value.trim();
+      if(!name){toast('Name is required');return;}
+      customers.push({id:Date.now(),name,email:document.getElementById('ac-email').value.trim(),phone:document.getElementById('ac-phone').value.trim(),joined:new Date(),creditBalance:0});
+      closeModal();renderCustomers();toast(name+' added');addAudit('system','Customer added: '+name);
+    },closeModal,'Add Customer'
+  );
+}
+function editCustomer(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  openModal(
+    `<div class="form-label">Full name</div><input class="form-input" type="text" id="ec-name" value="${c.name}">
+    <div class="form-label">Email</div><input class="form-input" type="email" id="ec-email" value="${c.email}">
+    <div class="form-label">Phone</div><input class="form-input" type="tel" id="ec-phone" value="${c.phone||''}">`,
+    'Save','Cancel',
+    ()=>{
+      c.name=document.getElementById('ec-name').value.trim()||c.name;
+      c.email=document.getElementById('ec-email').value.trim();
+      c.phone=document.getElementById('ec-phone').value.trim();
+      closeModal();renderCustomers();showCustomerDetail(id);toast('Customer updated');
+    },closeModal,'Edit Customer'
+  );
+}
+function deleteCustomer(id){
+  customers=customers.filter(x=>x.id!==id);selectedCustId=null;
+  document.getElementById('custDetail').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">👥</div><div class="empty-pg-t">No customer selected</div></div>';
+  renderCustomers();toast('Customer deleted');
+}
+function addCreditToCustomer(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  openModal(
+    `<p style="font-size:12px;color:var(--text2);margin-bottom:10px">Current credit: <strong>Rs.${c.creditBalance.toFixed(2)}</strong></p>
+    <div class="form-label">Amount (Rs.)</div><input class="form-input" type="number" id="ca-amt" min="0" step="0.01" placeholder="0.00">`,
+    'Add credit','Cancel',
+    ()=>{
+      const amt=parseFloat(document.getElementById('ca-amt').value)||0;
+      if(amt<=0){toast('Enter a valid amount');return;}
+      c.creditBalance=parseFloat((c.creditBalance+amt).toFixed(2));
+      const cr=creditAccounts.find(x=>x.name===c.name);
+      if(cr){cr.balance=parseFloat((cr.balance+amt).toFixed(2));cr.history.unshift({type:'credit',amount:amt,date:new Date()});}
+      closeModal();renderCustomers();showCustomerDetail(id);renderCredit();
+      toast(`Rs.${amt.toFixed(2)} added to ${c.name}`);
+    },closeModal,'Add Credit — '+c.name
+  );
+}
+
+// ── CREDIT ACCOUNTS ──
+let creditAccounts=[
+  {id:1,name:'Aisha Perera',limit:200,balance:0,history:[]},
+  {id:2,name:'Rohan Silva',limit:150,balance:50,history:[{type:'credit',amount:50,note:'Store credit',date:new Date('2025-04-10')}]},
+  {id:3,name:'Nimal Fernando',limit:100,balance:0,history:[]},
+];
+let nextCreditId=4;
+function renderCredit(){
+  const total=creditAccounts.reduce((s,a)=>s+a.balance,0);
+  const active=creditAccounts.filter(a=>a.balance>0).length;
+  document.getElementById('creditStats').innerHTML=`
+    <div class="stat-c"><div class="lbl">Total accounts</div><div class="val">${creditAccounts.length}</div></div>
+    <div class="stat-c"><div class="lbl">Active balances</div><div class="val">${active}</div><div class="sub">${creditAccounts.length-active} at zero</div></div>
+    <div class="stat-c"><div class="lbl" style="color:var(--amber)">Total owed</div><div class="val" style="color:var(--amber)">Rs.${total.toFixed(2)}</div></div>
+  `;
+  if(!creditAccounts.length){document.getElementById('creditTable').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">💳</div><div class="empty-pg-t">No credit accounts</div></div>';return;}
+  document.getElementById('creditTable').innerHTML=`
+    <table class="dt">
+      <thead><tr><th>Customer</th><th>Credit limit</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${creditAccounts.map(a=>`
+        <tr>
+          <td><strong>${a.name}</strong></td>
+          <td style="font-family:'JetBrains Mono',monospace">Rs.${a.limit.toFixed(2)}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${a.balance>0?'var(--amber)':'var(--text)'}">Rs.${a.balance.toFixed(2)}</td>
+          <td><span class="badge ${a.balance>0?'bg-amber':'bg-green'}">${a.balance>0?'Balance owed':'Clear'}</span></td>
+          <td style="display:flex;gap:5px">
+            <button class="tbl-action" onclick="addCredit(${a.id})">+ Credit</button>
+            <button class="tbl-action" onclick="payCredit(${a.id})">Pay</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+function addCreditAccount(){
+  openModal(
+    `<div class="form-label">Customer name</div><input class="form-input" type="text" id="ca2-name" placeholder="Jane Smith">
+    <div class="form-label">Credit limit (Rs.)</div><input class="form-input" type="number" id="ca2-limit" min="0" step="1" value="100">`,
+    'Create','Cancel',
+    ()=>{
+      const name=document.getElementById('ca2-name').value.trim();
+      if(!name){toast('Name is required');return;}
+      const limit=parseFloat(document.getElementById('ca2-limit').value)||100;
+      creditAccounts.push({id:nextCreditId++,name,limit,balance:0,history:[]});
+      closeModal();renderCredit();toast('Account created for '+name);addAudit('system','Credit account created for '+name);
+    },closeModal,'New Credit Account'
+  );
+}
+function addCredit(id){
+  const a=creditAccounts.find(x=>x.id===id);if(!a)return;
+  openModal(
+    `<div class="form-label">Amount (Rs.)</div><input class="form-input" type="number" id="cr2-amt" min="0" step="0.01" placeholder="0.00">
+    <div class="form-label">Note</div><input class="form-input" type="text" id="cr2-note" placeholder="Reason">`,
+    'Add credit','Cancel',
+    ()=>{
+      const amt=parseFloat(document.getElementById('cr2-amt').value)||0;
+      if(amt<=0){toast('Invalid amount');return;}
+      a.balance=parseFloat((a.balance+amt).toFixed(2));
+      a.history.unshift({type:'credit',amount:amt,note:document.getElementById('cr2-note').value||'Credit added',date:new Date()});
+      closeModal();renderCredit();toast(`Rs.${amt.toFixed(2)} credit added to ${a.name}`);
+    },closeModal,'Add Credit — '+a.name
+  );
+}
+function payCredit(id){
+  const a=creditAccounts.find(x=>x.id===id);if(!a)return;
+  if(a.balance<=0){toast('No balance to clear');return;}
+  openModal(
+    `<p style="font-size:12px;color:var(--text2);margin-bottom:10px">Balance: <strong>Rs.${a.balance.toFixed(2)}</strong></p>
+    <div class="form-label">Payment amount (Rs.)</div><input class="form-input" type="number" id="pay-amt" value="${a.balance.toFixed(2)}" min="0" step="0.01">`,
+    'Record payment','Cancel',
+    ()=>{
+      const amt=Math.min(parseFloat(document.getElementById('pay-amt').value)||0,a.balance);
+      if(amt<=0){toast('Invalid amount');return;}
+      a.balance=parseFloat((a.balance-amt).toFixed(2));
+      a.history.unshift({type:'payment',amount:amt,note:'Payment received',date:new Date()});
+      closeModal();renderCredit();toast(`Rs.${amt.toFixed(2)} payment recorded`);
+      addAudit('system',`Rs.${amt.toFixed(2)} credit payment from ${a.name}`);
+    },closeModal,'Record Payment — '+a.name
+  );
+}
+
+// ── SETTINGS ──
+function saveSettings(){
+  const name=document.getElementById('cfg-name')?.value.trim()||'Ceatea';
+  toast(`Settings saved — store: ${name}`);
+  addAudit('system','Settings updated');
 }
 
 // ── TOAST ──
