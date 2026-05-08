@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ceatea POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -912,58 +913,35 @@ tbody tr:hover{background:var(--surface2)}
 </div><!-- end shell -->
 
 <div class="toast" id="toastEl"></div>
+<div id="dbOverlay" style="position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px">
+  <div style="width:36px;height:36px;border:3px solid var(--g4);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite"></div>
+  <div style="font-size:13px;font-weight:600;color:var(--text2)">Connecting to database…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 <script>
+// ── SUPABASE ──────────────────────────────────────────────────────────────
+const SUPA_URL = 'https://mtqnzxvrhpgbedmonsge.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10cW56eHZyaHBnYmVkbW9uc2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMjQ2OTYsImV4cCI6MjA5MzgwMDY5Nn0.hlMFDWi2gSnqvmTzTH2EUSSmedNgQ_KcO2dPEIfS1cE';
+const _sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
+async function dbOp(table, method, data, matchField, matchVal){
+  try {
+    if(method==='insert') return await _sb.from(table).insert(data);
+    if(method==='update') return await _sb.from(table).update(data).eq(matchField, matchVal);
+    if(method==='delete') return await _sb.from(table).delete().eq(matchField, matchVal);
+  } catch(e){ console.warn('Supabase sync error:', e); }
+}
+
 // ── DATA ──────────────────────────────────────────────────────────────────
 const CATEGORIES = ['All','Fruit & Veg','Dairy','Bakery','Meat','Drinks','Snacks'];
-let products = [
-  {id:1,  name:'Bananas',           em:'🍌', cat:'Fruit & Veg', price:0.79, stock:48, low:10, age:false},
-  {id:2,  name:'Apples 6pk',        em:'🍎', cat:'Fruit & Veg', price:1.49, stock:32, low:10, age:false},
-  {id:3,  name:'Potatoes 1.5kg',    em:'🥔', cat:'Fruit & Veg', price:1.10, stock:20, low:8,  age:false},
-  {id:4,  name:'Carrots 500g',      em:'🥕', cat:'Fruit & Veg', price:0.65, stock:15, low:8,  age:false},
-  {id:5,  name:'Broccoli',          em:'🥦', cat:'Fruit & Veg', price:0.79, stock:3,  low:5,  age:false},
-  {id:6,  name:'Cherry Tomatoes',   em:'🍅', cat:'Fruit & Veg', price:1.35, stock:0,  low:5,  age:false},
-  {id:7,  name:'Avocado',           em:'🥑', cat:'Fruit & Veg', price:0.90, stock:12, low:5,  age:false},
-  {id:8,  name:'Baby Spinach 200g', em:'🥬', cat:'Fruit & Veg', price:1.20, stock:8,  low:5,  age:false},
-  {id:9,  name:'Milk 2L',           em:'🥛', cat:'Dairy',       price:1.55, stock:30, low:10, age:false},
-  {id:10, name:'Cheddar 400g',      em:'🧀', cat:'Dairy',       price:3.20, stock:4,  low:5,  age:false},
-  {id:11, name:'Butter 250g',       em:'🧈', cat:'Dairy',       price:1.85, stock:18, low:5,  age:false},
-  {id:12, name:'Greek Yoghurt',     em:'🍦', cat:'Dairy',       price:2.40, stock:12, low:5,  age:false},
-  {id:13, name:'Free Range Eggs 6', em:'🥚', cat:'Dairy',       price:2.10, stock:22, low:8,  age:false},
-  {id:14, name:'Oat Milk 1L',       em:'🥛', cat:'Dairy',       price:1.75, stock:2,  low:5,  age:false},
-  {id:15, name:'White Bread 800g',  em:'🍞', cat:'Bakery',      price:1.10, stock:14, low:5,  age:false},
-  {id:16, name:'Sourdough Loaf',    em:'🥖', cat:'Bakery',      price:2.50, stock:6,  low:3,  age:false},
-  {id:17, name:'Croissants 4pk',    em:'🥐', cat:'Bakery',      price:2.20, stock:9,  low:3,  age:false},
-  {id:18, name:'Bagels 4pk',        em:'🥯', cat:'Bakery',      price:1.80, stock:11, low:3,  age:false},
-  {id:19, name:'Chicken 500g',      em:'🍗', cat:'Meat',        price:4.50, stock:16, low:5,  age:false},
-  {id:20, name:'Minced Beef 500g',  em:'🥩', cat:'Meat',        price:4.20, stock:8,  low:5,  age:false},
-  {id:21, name:'Smoked Salmon',     em:'🐟', cat:'Meat',        price:3.80, stock:4,  low:3,  age:false},
-  {id:22, name:'Back Bacon 300g',   em:'🥓', cat:'Meat',        price:3.40, stock:12, low:5,  age:false},
-  {id:23, name:'Orange Juice 1L',   em:'🍊', cat:'Drinks',      price:1.65, stock:24, low:8,  age:false},
-  {id:24, name:'Sparkling Water',   em:'💧', cat:'Drinks',      price:0.75, stock:40, low:10, age:false},
-  {id:25, name:'Coca-Cola 6pk',     em:'🥤', cat:'Drinks',      price:5.50, stock:18, low:5,  age:false},
-  {id:26, name:'Lager 4pk',         em:'🍺', cat:'Drinks',      price:4.80, stock:10, low:5,  age:true},
-  {id:27, name:'Red Wine 75cl',     em:'🍷', cat:'Drinks',      price:7.50, stock:7,  low:3,  age:true},
-  {id:28, name:'Crisps',            em:'🍟', cat:'Snacks',      price:0.85, stock:50, low:15, age:false},
-  {id:29, name:'Chocolate Bar',     em:'🍫', cat:'Snacks',      price:1.10, stock:35, low:10, age:false},
-  {id:30, name:'Mixed Nuts 200g',   em:'🥜', cat:'Snacks',      price:3.20, stock:3,  low:5,  age:false},
-  {id:31, name:'Digestives 400g',   em:'🍪', cat:'Snacks',      price:1.45, stock:22, low:8,  age:false},
-  {id:32, name:'Tobacco Pouch 30g', em:'🚬', cat:'Snacks',      price:12.50,stock:5,  low:3,  age:true},
-];
+let products = [];
 
 let cart = [], payMethod = 'card', orderNum = 1, holds = [], stockFilter = 'all', activeCat = 'All', discountPct = 0;
 let pluVal = '';
 let sidebarOpen = true;
 
 let transactions = [];
-(function seedTx(){
-  const m=['card','cash','tap','card','card','split'];
-  for(let i=0;i<15;i++){
-    const its=products.slice(Math.floor(Math.random()*5),Math.floor(Math.random()*5)+3).map(p=>({...p,qty:Math.floor(Math.random()*3)+1}));
-    const sub=its.reduce((s,x)=>s+x.price*x.qty,0);
-    transactions.push({ref:'#'+(1000+i),type:Math.random()<.09?'refund':'sale',method:m[Math.floor(Math.random()*m.length)],total:parseFloat(sub.toFixed(2)),items:its,time:new Date(Date.now()-(i*28+Math.random()*15)*60000)});
-  }
-})();
 
 // ── CLOCK ──
 function updateClock(){
@@ -1407,10 +1385,18 @@ function showCardModal(total){
   );
 }
 function processPayment(total, method, change){
-  cart.forEach(ci=>{const p=products.find(x=>x.id===ci.id);if(p)p.stock=Math.max(0,p.stock-ci.qty);});
+  const items=[...cart];
+  cart.forEach(ci=>{
+    const p=products.find(x=>x.id===ci.id);
+    if(p){
+      p.stock=Math.max(0,p.stock-ci.qty);
+      dbOp('products','update',{stock:p.stock},'id',p.id);
+    }
+  });
   const ref='#'+String(orderNum).padStart(4,'0');
-  transactions.unshift({ref,type:'sale',method,total,items:[...cart],time:new Date()});
-  addAudit('sale',`Sale ${ref} — Rs.${total.toFixed(2)} via ${method} (${cart.length} item${cart.length!==1?'s':''})`);
+  transactions.unshift({ref,type:'sale',method,total,items,time:new Date()});
+  dbOp('transactions','insert',{ref,type:'sale',method,total,items});
+  addAudit('sale',`Sale ${ref} — Rs.${total.toFixed(2)} via ${method} (${items.length} item${items.length!==1?'s':''})`);
   showReceiptModal(total,method,change);
 }
 function showReceiptModal(total,method,change){
@@ -1513,8 +1499,8 @@ function renderInventory(q=''){
   }).join('');
   renderInvStats();
 }
-function updateStock(id,v){const p=products.find(x=>x.id===id);if(p){const old=p.stock;p.stock=Math.max(0,parseInt(v)||0);renderGrid();renderInvStats();toast('Stock updated');addAudit('stock',`${p.em} ${p.name} stock updated: ${old} → ${p.stock}`);}}
-function updatePrice(id,v){const p=products.find(x=>x.id===id);if(p){p.price=Math.max(0,parseFloat(v)||0);renderGrid();toast('Price updated');}}
+function updateStock(id,v){const p=products.find(x=>x.id===id);if(p){const old=p.stock;p.stock=Math.max(0,parseInt(v)||0);dbOp('products','update',{stock:p.stock},'id',p.id);renderGrid();renderInvStats();toast('Stock updated');addAudit('stock',`${p.em} ${p.name} stock updated: ${old} → ${p.stock}`);}}
+function updatePrice(id,v){const p=products.find(x=>x.id===id);if(p){p.price=Math.max(0,parseFloat(v)||0);dbOp('products','update',{price:p.price},'id',p.id);renderGrid();toast('Price updated');}}
 function renderInvStats(){
   const total=products.length,val=products.reduce((s,p)=>s+p.price*p.stock,0),low=products.filter(p=>p.stock>0&&p.stock<=p.low).length,out=products.filter(p=>p.stock===0).length;
   document.getElementById('invStats').innerHTML=`
@@ -1529,7 +1515,7 @@ function restockModal(id){
   openModal(
     `<p style="font-size:12px;color:var(--text2);margin-bottom:10px">Current stock: <strong>${p.stock}</strong> units</p><label class="form-label">Add units</label><input class="form-input" type="number" id="rqty" value="10" min="1"><label class="form-label">Supplier reference</label><input class="form-input" type="text" id="rref" placeholder="PO-00123">`,
     'Add stock','Cancel',
-    ()=>{const q=parseInt(document.getElementById('rqty').value)||0;if(q>0){p.stock+=q;closeModal();renderInventory('');renderGrid();toast(`+${q} units added to ${p.name}`);addAudit('stock',`Restocked ${p.em} ${p.name} +${q} units (now ${p.stock})`);}},
+    ()=>{const q=parseInt(document.getElementById('rqty').value)||0;if(q>0){p.stock+=q;dbOp('products','update',{stock:p.stock},'id',p.id);closeModal();renderInventory('');renderGrid();toast(`+${q} units added to ${p.name}`);addAudit('stock',`Restocked ${p.em} ${p.name} +${q} units (now ${p.stock})`);}},
     closeModal,
     'Restock — '+p.name
   );
@@ -1555,7 +1541,9 @@ function showAddProduct(){
       const cat=document.getElementById('np-cat').value;
       const age=document.getElementById('np-age').value==='yes';
       if(!name){toast('Name is required');return;}
-      products.push({id:Date.now(),name,cat,price,stock,em,low:5,age});
+      const newProd={name,em,cat,price,stock,low:5,age};
+      const {data:ins}=await _sb.from('products').insert(newProd).select().single().catch(()=>({data:null}));
+      products.push({id:ins?.id||Date.now(),...newProd});
       closeModal();renderInventory('');renderGrid();toast(name+' added');
     },
     closeModal,
@@ -1645,9 +1633,11 @@ function showRefund(ref){
     <div style="margin-top:10px"><div class="form-label">Reason</div><select class="form-select"><option>Customer return</option><option>Defective item</option><option>Wrong item</option><option>Other</option></select></div>`,
     'Process refund','Cancel',
     ()=>{
-      const amt=tx.items.filter((_,i)=>document.getElementById('ri'+i)?.checked).reduce((s,x)=>s+x.price*x.qty,0);
+      const refItems=tx.items.filter((_,i)=>document.getElementById('ri'+i)?.checked);
+      const amt=refItems.reduce((s,x)=>s+x.price*x.qty,0);
       const ref=tx.ref+'R';
-      transactions.unshift({ref,type:'refund',method:tx.method,total:parseFloat(amt.toFixed(2)),items:tx.items,time:new Date()});
+      transactions.unshift({ref,type:'refund',method:tx.method,total:parseFloat(amt.toFixed(2)),items:refItems,time:new Date()});
+      dbOp('transactions','insert',{ref,type:'refund',method:tx.method,total:parseFloat(amt.toFixed(2)),items:refItems});
       addAudit('refund',`Refund ${ref} — Rs.${amt.toFixed(2)} (original: ${tx.ref})`);
       closeModal();renderReports();toast('Refund of Rs.'+amt.toFixed(2)+' processed');
     },
@@ -1735,12 +1725,8 @@ function renderDashboard(){
 }
 
 // ── QUOTATIONS ──
-let quotations=[
-  {id:'QT-001',customer:'Aisha Perera',items:[{name:'Milk 2L',qty:2,price:1.55},{name:'Cheddar 400g',qty:1,price:3.20}],total:6.30,status:'Sent',date:new Date('2025-04-20')},
-  {id:'QT-002',customer:'Walk-in',items:[{name:'Chicken 500g',qty:3,price:4.50}],total:13.50,status:'Draft',date:new Date('2025-05-01')},
-  {id:'QT-003',customer:'Rohan Silva',items:[{name:'Coca-Cola 6pk',qty:2,price:5.50}],total:11.00,status:'Accepted',date:new Date('2025-04-15')},
-];
-let nextQuotId=4;
+let quotations=[];
+let nextQuotId=1;
 function quotBadge(s){return{Draft:'bg-gray',Sent:'bg-blue',Accepted:'bg-green',Expired:'bg-red'}[s]||'bg-gray';}
 function renderQuotations(){
   const q=(document.getElementById('quotSearch')?.value||'').toLowerCase();
@@ -1780,7 +1766,9 @@ function newQuotation(){
       const items=rawItems.map(l=>{const p=l.split(',');return{name:(p[0]||'Item').trim(),qty:parseInt(p[1])||1,price:parseFloat(p[2])||0};});
       const total=items.reduce((s,i)=>s+i.qty*i.price,0);
       const status=document.getElementById('q-status').value;
-      quotations.unshift({id:'QT-'+String(nextQuotId++).padStart(3,'0'),customer:cust,items,total,status,date:new Date()});
+      const qid='QT-'+String(nextQuotId++).padStart(3,'0');
+      quotations.unshift({id:qid,customer:cust,items,total,status,date:new Date()});
+      dbOp('quotations','insert',{id:qid,customer:cust,items,total,status});
       closeModal();renderQuotations();toast('Quotation created');
       addAudit('system',`Quotation created for ${cust}`);
     },closeModal,'New Quotation'
@@ -1791,18 +1779,20 @@ function convertToInvoice(qid){
   const id='INV-'+String(nextInvId++).padStart(3,'0');
   const due=new Date();due.setDate(due.getDate()+30);
   invoicesData.unshift({id,customer:q.customer,total:q.total,status:'Pending',date:new Date(),due,items:q.items});
-  q.status='Accepted';renderQuotations();toast(`Invoice ${id} created from ${qid}`);
+  dbOp('invoices','insert',{id,customer:q.customer,total:q.total,status:'Pending',due_date:due.toISOString().split('T')[0],items:q.items});
+  q.status='Accepted';
+  dbOp('quotations','update',{status:'Accepted'},'id',qid);
+  renderQuotations();toast(`Invoice ${id} created from ${qid}`);
   addAudit('system',`Quotation ${qid} converted to invoice ${id}`);
 }
-function deleteQuotation(qid){quotations=quotations.filter(x=>x.id!==qid);renderQuotations();toast('Quotation deleted');}
+function deleteQuotation(qid){
+  dbOp('quotations','delete',null,'id',qid);
+  quotations=quotations.filter(x=>x.id!==qid);renderQuotations();toast('Quotation deleted');
+}
 
 // ── INVOICES ──
-let invoicesData=[
-  {id:'INV-001',customer:'Aisha Perera',total:6.30,status:'Paid',date:new Date('2025-04-21'),due:new Date('2025-05-05'),items:[]},
-  {id:'INV-002',customer:'Rohan Silva',total:11.00,status:'Pending',date:new Date('2025-04-16'),due:new Date('2025-05-16'),items:[]},
-  {id:'INV-003',customer:'Walk-in',total:21.60,status:'Overdue',date:new Date('2025-04-01'),due:new Date('2025-04-15'),items:[]},
-];
-let nextInvId=4;
+let invoicesData=[];
+let nextInvId=1;
 function invBadge(s){return{Pending:'bg-amber',Paid:'bg-green',Overdue:'bg-red'}[s]||'bg-gray';}
 function renderInvoices(){
   const q=(document.getElementById('invSrch')?.value||'').toLowerCase();
@@ -1829,9 +1819,12 @@ function renderInvoices(){
 }
 function markInvoicePaid(id){
   const inv=invoicesData.find(x=>x.id===id);
-  if(inv){inv.status='Paid';renderInvoices();toast(`Invoice ${id} marked paid`);addAudit('system',`Invoice ${id} marked paid`);}
+  if(inv){inv.status='Paid';dbOp('invoices','update',{status:'Paid'},'id',id);renderInvoices();toast(`Invoice ${id} marked paid`);addAudit('system',`Invoice ${id} marked paid`);}
 }
-function deleteInvoice(id){invoicesData=invoicesData.filter(x=>x.id!==id);renderInvoices();toast('Invoice deleted');}
+function deleteInvoice(id){
+  dbOp('invoices','delete',null,'id',id);
+  invoicesData=invoicesData.filter(x=>x.id!==id);renderInvoices();toast('Invoice deleted');
+}
 function newInvoice(){
   openModal(
     `<div class="form-label">Customer name</div><input class="form-input" type="text" id="ni-cust" placeholder="Customer name">
@@ -1845,6 +1838,7 @@ function newInvoice(){
       const due=dueStr?new Date(dueStr):new Date(Date.now()+30*86400000);
       const id='INV-'+String(nextInvId++).padStart(3,'0');
       invoicesData.unshift({id,customer:cust,total,status:'Pending',date:new Date(),due,items:[]});
+      dbOp('invoices','insert',{id,customer:cust,total,status:'Pending',due_date:due.toISOString().split('T')[0],items:[]});
       closeModal();renderInvoices();toast(`Invoice ${id} created`);
       addAudit('system',`Invoice ${id} created for ${cust}`);
     },closeModal,'New Invoice'
@@ -1925,11 +1919,7 @@ function newReturn(){
 }
 
 // ── CUSTOMERS ──
-let customers=[
-  {id:1,name:'Aisha Perera',email:'aisha@example.com',phone:'0771 234 567',joined:new Date('2025-01-10'),creditBalance:0},
-  {id:2,name:'Rohan Silva',email:'rohan@example.com',phone:'0712 345 678',joined:new Date('2025-02-14'),creditBalance:50},
-  {id:3,name:'Nimal Fernando',email:'nimal@example.com',phone:'0765 432 100',joined:new Date('2025-03-01'),creditBalance:0},
-];
+let customers=[];
 let selectedCustId=null;
 function renderCustomers(){
   const q=(document.getElementById('custSearch')?.value||'').toLowerCase();
@@ -1977,7 +1967,10 @@ function addCustomer(){
     ()=>{
       const name=document.getElementById('ac-name').value.trim();
       if(!name){toast('Name is required');return;}
-      customers.push({id:Date.now(),name,email:document.getElementById('ac-email').value.trim(),phone:document.getElementById('ac-phone').value.trim(),joined:new Date(),creditBalance:0});
+      const email=document.getElementById('ac-email').value.trim();
+      const phone=document.getElementById('ac-phone').value.trim();
+      const {data:nc}=await _sb.from('customers').insert({name,email,phone,credit_balance:0}).select().single().catch(()=>({data:null}));
+      customers.push({id:nc?.id||Date.now(),name,email,phone,joined:new Date(),creditBalance:0});
       closeModal();renderCustomers();toast(name+' added');addAudit('system','Customer added: '+name);
     },closeModal,'Add Customer'
   );
@@ -1993,11 +1986,13 @@ function editCustomer(id){
       c.name=document.getElementById('ec-name').value.trim()||c.name;
       c.email=document.getElementById('ec-email').value.trim();
       c.phone=document.getElementById('ec-phone').value.trim();
+      dbOp('customers','update',{name:c.name,email:c.email,phone:c.phone},'id',c.id);
       closeModal();renderCustomers();showCustomerDetail(id);toast('Customer updated');
     },closeModal,'Edit Customer'
   );
 }
 function deleteCustomer(id){
+  dbOp('customers','delete',null,'id',id);
   customers=customers.filter(x=>x.id!==id);selectedCustId=null;
   document.getElementById('custDetail').innerHTML='<div class="empty-pg"><div class="empty-pg-ic">👥</div><div class="empty-pg-t">No customer selected</div></div>';
   renderCustomers();toast('Customer deleted');
@@ -2012,8 +2007,13 @@ function addCreditToCustomer(id){
       const amt=parseFloat(document.getElementById('ca-amt').value)||0;
       if(amt<=0){toast('Enter a valid amount');return;}
       c.creditBalance=parseFloat((c.creditBalance+amt).toFixed(2));
+      dbOp('customers','update',{credit_balance:c.creditBalance},'id',c.id);
       const cr=creditAccounts.find(x=>x.name===c.name);
-      if(cr){cr.balance=parseFloat((cr.balance+amt).toFixed(2));cr.history.unshift({type:'credit',amount:amt,date:new Date()});}
+      if(cr){
+        cr.balance=parseFloat((cr.balance+amt).toFixed(2));
+        cr.history.unshift({type:'credit',amount:amt,note:'Added from customer profile',date:new Date()});
+        dbOp('credit_accounts','update',{balance:cr.balance,history:cr.history.map(h=>({...h,date:h.date instanceof Date?h.date.toISOString():h.date}))},'id',cr.id);
+      }
       closeModal();renderCustomers();showCustomerDetail(id);renderCredit();
       toast(`Rs.${amt.toFixed(2)} added to ${c.name}`);
     },closeModal,'Add Credit — '+c.name
@@ -2021,12 +2021,8 @@ function addCreditToCustomer(id){
 }
 
 // ── CREDIT ACCOUNTS ──
-let creditAccounts=[
-  {id:1,name:'Aisha Perera',limit:200,balance:0,history:[]},
-  {id:2,name:'Rohan Silva',limit:150,balance:50,history:[{type:'credit',amount:50,note:'Store credit',date:new Date('2025-04-10')}]},
-  {id:3,name:'Nimal Fernando',limit:100,balance:0,history:[]},
-];
-let nextCreditId=4;
+let creditAccounts=[];
+let nextCreditId=1;
 function renderCredit(){
   const total=creditAccounts.reduce((s,a)=>s+a.balance,0);
   const active=creditAccounts.filter(a=>a.balance>0).length;
@@ -2062,7 +2058,8 @@ function addCreditAccount(){
       const name=document.getElementById('ca2-name').value.trim();
       if(!name){toast('Name is required');return;}
       const limit=parseFloat(document.getElementById('ca2-limit').value)||100;
-      creditAccounts.push({id:nextCreditId++,name,limit,balance:0,history:[]});
+      const {data:nca}=await _sb.from('credit_accounts').insert({name,credit_limit:limit,balance:0,history:[]}).select().single().catch(()=>({data:null}));
+      creditAccounts.push({id:nca?.id||nextCreditId++,name,limit,balance:0,history:[]});
       closeModal();renderCredit();toast('Account created for '+name);addAudit('system','Credit account created for '+name);
     },closeModal,'New Credit Account'
   );
@@ -2078,6 +2075,7 @@ function addCredit(id){
       if(amt<=0){toast('Invalid amount');return;}
       a.balance=parseFloat((a.balance+amt).toFixed(2));
       a.history.unshift({type:'credit',amount:amt,note:document.getElementById('cr2-note').value||'Credit added',date:new Date()});
+      dbOp('credit_accounts','update',{balance:a.balance,history:a.history.map(h=>({...h,date:h.date instanceof Date?h.date.toISOString():h.date}))},'id',a.id);
       closeModal();renderCredit();toast(`Rs.${amt.toFixed(2)} credit added to ${a.name}`);
     },closeModal,'Add Credit — '+a.name
   );
@@ -2094,6 +2092,7 @@ function payCredit(id){
       if(amt<=0){toast('Invalid amount');return;}
       a.balance=parseFloat((a.balance-amt).toFixed(2));
       a.history.unshift({type:'payment',amount:amt,note:'Payment received',date:new Date()});
+      dbOp('credit_accounts','update',{balance:a.balance,history:a.history.map(h=>({...h,date:h.date instanceof Date?h.date.toISOString():h.date}))},'id',a.id);
       closeModal();renderCredit();toast(`Rs.${amt.toFixed(2)} payment recorded`);
       addAudit('system',`Rs.${amt.toFixed(2)} credit payment from ${a.name}`);
     },closeModal,'Record Payment — '+a.name
@@ -2115,10 +2114,86 @@ function toast(msg){
   clearTimeout(_tt);_tt=setTimeout(()=>el.style.display='none',2400);
 }
 
+// ── INIT DB ──
+async function initDB(){
+  try {
+    const [pRes, txRes, custRes, credRes, quotRes, invRes] = await Promise.all([
+      _sb.from('products').select('*').order('id'),
+      _sb.from('transactions').select('*').order('created_at', {ascending:false}),
+      _sb.from('customers').select('*').order('id'),
+      _sb.from('credit_accounts').select('*').order('id'),
+      _sb.from('quotations').select('*').order('created_at', {ascending:false}),
+      _sb.from('invoices').select('*').order('created_at', {ascending:false}),
+    ]);
+
+    if(pRes.data) products = pRes.data.map(x=>({
+      id: x.id, name: x.name, em: x.em||'📦', cat: x.cat,
+      price: parseFloat(x.price||0), stock: parseInt(x.stock||0),
+      low: parseInt(x.low||5), age: !!x.age,
+    }));
+
+    if(txRes.data) {
+      transactions = txRes.data.map(x=>({
+        ref: x.ref, type: x.type, method: x.method,
+        total: parseFloat(x.total||0),
+        items: Array.isArray(x.items) ? x.items : (x.items ? JSON.parse(x.items) : []),
+        time: new Date(x.created_at),
+      }));
+      const maxOrd = transactions.reduce((m,t)=>{
+        const n=parseInt((t.ref||'').replace(/\D/g,''))||0; return Math.max(m,n);
+      },0);
+      if(maxOrd>0) orderNum = maxOrd+1;
+    }
+
+    if(custRes.data) customers = custRes.data.map(x=>({
+      id: x.id, name: x.name, email: x.email||'', phone: x.phone||'',
+      joined: new Date(x.created_at), creditBalance: parseFloat(x.credit_balance||0),
+    }));
+
+    if(credRes.data) {
+      creditAccounts = credRes.data.map(x=>({
+        id: x.id, name: x.name,
+        limit: parseFloat(x.credit_limit||100),
+        balance: parseFloat(x.balance||0),
+        history: Array.isArray(x.history) ? x.history.map(h=>({...h,date:new Date(h.date||Date.now())})) : [],
+      }));
+      nextCreditId = creditAccounts.reduce((m,a)=>Math.max(m,a.id),0)+1;
+    }
+
+    if(quotRes.data) {
+      quotations = quotRes.data.map(x=>({
+        id: x.id, customer: x.customer,
+        items: Array.isArray(x.items) ? x.items : (x.items ? JSON.parse(x.items) : []),
+        total: parseFloat(x.total||0), status: x.status||'Draft',
+        date: new Date(x.created_at),
+      }));
+      const maxQ = quotations.reduce((m,q)=>{const n=parseInt((q.id||'').replace(/\D/g,''))||0;return Math.max(m,n);},0);
+      if(maxQ>0) nextQuotId = maxQ+1;
+    }
+
+    if(invRes.data) {
+      invoicesData = invRes.data.map(x=>({
+        id: x.id, customer: x.customer,
+        items: Array.isArray(x.items) ? x.items : (x.items ? JSON.parse(x.items) : []),
+        total: parseFloat(x.total||0), status: x.status||'Pending',
+        date: new Date(x.created_at),
+        due: x.due_date ? new Date(x.due_date) : new Date(Date.now()+14*864e5),
+      }));
+      const maxI = invoicesData.reduce((m,i)=>{const n=parseInt((i.id||'').replace(/\D/g,''))||0;return Math.max(m,n);},0);
+      if(maxI>0) nextInvId = maxI+1;
+    }
+
+  } catch(e){
+    console.error('initDB failed:', e);
+    toast('Warning: running in offline mode');
+  } finally {
+    document.getElementById('dbOverlay').style.display='none';
+    initCats(); renderGrid(); renderCart();
+  }
+}
+
 // ── INIT ──
-initCats();
-renderGrid();
-renderCart();
+initDB();
 </script>
 </body>
 </html>
