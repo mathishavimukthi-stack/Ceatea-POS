@@ -150,6 +150,22 @@ input,select{font-family:inherit}
 .si-input-row .form-input{margin-bottom:0;flex:1}
 .si-toggle{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:11px;font-weight:700;background:var(--surface2);color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;line-height:1.4}
 .si-toggle.on{background:var(--g);color:#fff;border-color:var(--g)}
+/* ── SINHALA ON-SCREEN KEYBOARD ── */
+.si-kbd{position:fixed;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:10px 12px 12px;width:358px;z-index:1100;animation:siKbdIn .15s ease}
+@keyframes siKbdIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.si-kbd-group{margin-bottom:7px}
+.si-kbd-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.si-kbd-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
+.si-kbd-btn{min-width:36px;height:36px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0;padding:0 4px;line-height:1}
+.si-kbd-btn:hover{background:var(--g3);border-color:var(--g);color:var(--g2)}
+.si-kbd-btn:active{transform:scale(.92);background:var(--g);color:#fff;border-color:var(--g)}
+.si-kbd-btn.sp{font-size:11px;font-weight:700;color:var(--text2);min-width:48px;background:var(--surface3)}
+.si-kbd-btn.sp:hover{background:var(--border2);border-color:var(--border2);color:var(--text)}
+.si-kbd-btn.bk{color:var(--red);border-color:var(--red-border);background:var(--red-bg);min-width:52px}
+.si-kbd-btn.bk:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.si-kbd-btn.cl{color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg)}
+.si-kbd-btn.cl:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
+.si-kbd-divider{height:1px;background:var(--border);margin:7px 0}
 .item-price{font-size:13px;font-weight:700;color:var(--g)}
 .item-stock{font-size:10px;font-weight:700;margin-top:4px;padding:2px 6px;border-radius:20px;display:inline-block}
 .item-stock.ok{background:#f0fdf4;color:#15803d}
@@ -1889,7 +1905,7 @@ function openModal(bodyHtml,confirmTxt,cancelTxt,onConfirm,onCancel,title=''){
   if(onConfirm) ov.querySelector('#mConfirm').onclick=onConfirm;
   ov.querySelector('#mCancel').onclick=onCancel||closeModal;
 }
-function closeModal(){stopBarcodeScanner();if(_modal){_modal.remove();_modal=null;}}
+function closeModal(){stopBarcodeScanner();hideSiKeyboard();if(_modal){_modal.remove();_modal=null;}}
 
 // ── INVENTORY ──
 function renderInventory(q=''){
@@ -1949,7 +1965,7 @@ function showAddProduct(){
     <input class="form-input" type="text" id="np-name" placeholder="e.g. Strawberries">
     <div class="form-label">Product Name (Sinhala)</div>
     <div class="si-input-row">
-      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siTransliterate(this,event)">
+      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siTransliterate(this,event)" onfocus="showSiKeyboard(this)">
       <button type="button" class="si-toggle" id="si-toggle-btn" onclick="toggleSiInput()">සිං</button>
     </div>
     <div class="form-2">
@@ -2049,6 +2065,146 @@ function siTransliterate(el, e){
   }
   el.value = before + e.key + after;
   el.setSelectionRange(start + 1, start + 1);
+}
+
+// ── SINHALA ON-SCREEN KEYBOARD ──
+let _siKbd = null, _siKbdEl = null;
+
+const _SI_VOWELS     = ['අ','ආ','ඇ','ඈ','ඉ','ඊ','උ','ඌ','එ','ඒ','ඓ','ඔ','ඕ','ඖ'];
+const _SI_CONSONANTS = [
+  ['ක','ඛ','ග','ඝ','ඞ'],
+  ['ච','ඡ','ජ','ඣ','ඤ'],
+  ['ට','ඨ','ඩ','ඪ','ණ'],
+  ['ත','ථ','ද','ධ','න'],
+  ['ප','ඵ','බ','භ','ම'],
+  ['ය','ර','ල','ව','ශ'],
+  ['ෂ','ස','හ','ළ','ෆ'],
+];
+const _SI_SIGNS      = ['ා','ි','ී','ු','ූ','ෙ','ේ','ෛ','ො','ෝ','ෞ','ං','ඃ','්'];
+
+function _siBtn(ch, extraCls, label) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'si-kbd-btn' + (extraCls ? ' '+extraCls : '');
+  b.textContent = label || ch;
+  b.onmousedown = e => e.preventDefault();
+  b.onclick = () => { _siKbdInsert(ch); if(_siKbdEl) _siKbdEl.focus(); };
+  return b;
+}
+function _siRow(chars, rowEl) {
+  chars.forEach(c => rowEl.appendChild(_siBtn(c)));
+}
+function _siGroup(label) {
+  const g = document.createElement('div');
+  g.className = 'si-kbd-group';
+  const lbl = document.createElement('div');
+  lbl.className = 'si-kbd-label';
+  lbl.textContent = label;
+  g.appendChild(lbl);
+  return g;
+}
+
+function showSiKeyboard(inputEl) {
+  _siKbdEl = inputEl;
+  if (_siKbd) { _posSiKbd(); return; }
+
+  const kb = document.createElement('div');
+  kb.className = 'si-kbd';
+
+  // Vowels
+  const vg = _siGroup('Vowels · අකුරු');
+  const vr = document.createElement('div'); vr.className = 'si-kbd-row';
+  _siRow(_SI_VOWELS, vr);
+  vg.appendChild(vr); kb.appendChild(vg);
+
+  kb.insertAdjacentHTML('beforeend','<div class="si-kbd-divider"></div>');
+
+  // Consonants
+  const cg = _siGroup('Consonants · ව්‍යංජන');
+  _SI_CONSONANTS.forEach(row => {
+    const r = document.createElement('div'); r.className = 'si-kbd-row';
+    _siRow(row, r);
+    cg.appendChild(r);
+  });
+  kb.appendChild(cg);
+
+  kb.insertAdjacentHTML('beforeend','<div class="si-kbd-divider"></div>');
+
+  // Vowel signs
+  const sg = _siGroup('Vowel Signs · සංඥා');
+  const sr = document.createElement('div'); sr.className = 'si-kbd-row';
+  _siRow(_SI_SIGNS, sr);
+  sg.appendChild(sr); kb.appendChild(sg);
+
+  kb.insertAdjacentHTML('beforeend','<div class="si-kbd-divider"></div>');
+
+  // Special row
+  const spr = document.createElement('div'); spr.className = 'si-kbd-row';
+
+  const zwj = _siBtn('‍','sp','ZWJ');
+  zwj.title = 'Zero Width Joiner — joins consonants into conjuncts';
+  spr.appendChild(zwj);
+
+  const bk = document.createElement('button');
+  bk.type='button'; bk.className='si-kbd-btn bk'; bk.textContent='⌫ Back';
+  bk.onmousedown = e => e.preventDefault();
+  bk.onclick = () => {
+    if(!_siKbdEl) return;
+    const v = _siKbdEl.value;
+    if(!v) return;
+    // pop last Unicode code point (handles multi-byte Sinhala correctly)
+    const chars = [...v]; chars.pop();
+    _siKbdEl.value = chars.join('');
+    _siKbdEl.focus();
+  };
+  spr.appendChild(bk);
+
+  const sp = _siBtn(' ','sp','Space'); sp.style.minWidth='60px';
+  spr.appendChild(sp);
+
+  const cl = _siBtn('','cl','Clear');
+  cl.onclick = () => { if(_siKbdEl){ _siKbdEl.value=''; _siKbdEl.focus(); } };
+  spr.appendChild(cl);
+
+  kb.appendChild(spr);
+  document.body.appendChild(kb);
+  _siKbd = kb;
+  _posSiKbd();
+
+  setTimeout(() => document.addEventListener('mousedown', _siKbdOutside), 0);
+}
+
+function _siKbdInsert(ch) {
+  if(!_siKbdEl) return;
+  const s = _siKbdEl.selectionStart, e = _siKbdEl.selectionEnd;
+  const v = _siKbdEl.value;
+  _siKbdEl.value = v.slice(0,s) + ch + v.slice(e);
+  _siKbdEl.setSelectionRange(s+ch.length, s+ch.length);
+}
+
+function _posSiKbd() {
+  if(!_siKbd || !_siKbdEl) return;
+  const r = _siKbdEl.getBoundingClientRect();
+  const kw = 358, kh = 380;
+  let left = r.left;
+  let top  = r.bottom + 5;
+  if (left + kw > window.innerWidth - 8)  left = window.innerWidth - kw - 8;
+  if (left < 8) left = 8;
+  if (top + kh > window.innerHeight - 8)  top = r.top - kh - 5;
+  _siKbd.style.left = left + 'px';
+  _siKbd.style.top  = top  + 'px';
+}
+
+function hideSiKeyboard() {
+  if(_siKbd){ _siKbd.remove(); _siKbd = null; }
+  _siKbdEl = null;
+  document.removeEventListener('mousedown', _siKbdOutside);
+}
+
+function _siKbdOutside(e) {
+  if(_siKbd && _siKbd.contains(e.target)) return;
+  if(_siKbdEl && _siKbdEl === e.target)   return;
+  hideSiKeyboard();
 }
 
 // ── BARCODE SCANNER ──
