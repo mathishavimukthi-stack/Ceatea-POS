@@ -2186,29 +2186,46 @@ function _pAvatar(name, sz=28) {
 // ── PHONETIC SINHALA ENGINE (fully offline) ──
 let _siMode = 'kbd', _phBuffer = '', _phCommitted = '', _phBarEl = null;
 
-// Consonants — longer entries first so the tokenizer tries them first
-const _PHCONS = {
-  'chh':'ඡ','ng':'ඞ','ny':'ඤ','gh':'ඝ','kh':'ඛ','jh':'ඣ','th':'ත',
-  'dh':'ධ','ph':'ඵ','bh':'භ','sh':'ශ','ll':'ළ','ch':'ච',
-  'k':'ක','g':'ග','j':'ජ','t':'ට','d':'ද','n':'න',
-  'p':'ප','b':'බ','m':'ම','y':'ය','r':'ར','l':'ල',
-  'v':'ව','w':'ව','s':'ස','h':'හ','f':'ෆ',
-};
-const _PHCONS_SORTED = Object.keys(_PHCONS).sort((a,b)=>b.length-a.length);
-
-// Vowel-only forms (standalone)
-const _PHVOWEL = {
-  'aee':'ඈ','aae':'ඈ','aa':'ආ','ae':'ඇ','ii':'ඊ','uu':'ඌ','ee':'ඒ','oo':'ඕ',
-  'a':'අ','i':'ඉ','u':'උ','e':'එ','o':'ඔ',
-};
-
-// Vowel suffixes attached to a consonant: [roman, sinhala_sign]
-// Longer suffixes first so generation uses them correctly
-const _PHVSUF = [
-  ['aee','ඈ'],['aae','ඈ'],['oo','ෝ'],['ee','ේ'],['aa','ා'],['ii','ී'],['uu','ූ'],
-  ['ae','ැ'],['an','ං'],['al','ල්'],
-  ['a',''],['i','ි'],['u','ු'],['e','ෙ'],['o','ො'],
+// Full syllable map — longest entries first for greedy matching
+const sinhalaMap = [
+  ['chaa','චා'],['chi','චි'],['chu','චු'],['che','චෙ'],['cho','චො'],['cha','ච'],
+  ['shaa','ශා'],['shi','ශි'],['shu','ශු'],['she','ශෙ'],['sho','ශො'],['sha','ශ'],
+  ['kaa','කා'],['ki','කි'],['kii','කී'],['ku','කු'],['kuu','කූ'],['ke','කෙ'],['kee','කේ'],['ko','කො'],['koo','කෝ'],['ka','ක'],
+  ['gaa','ගා'],['gi','ගි'],['gii','ගී'],['gu','ගු'],['guu','ගූ'],['ge','ගෙ'],['gee','ගේ'],['go','ගො'],['goo','ගෝ'],['ga','ග'],
+  ['naa','නා'],['ni','නි'],['nii','නී'],['nu','නු'],['nuu','නූ'],['ne','නෙ'],['nee','නේ'],['no','නො'],['noo','නෝ'],['na','න'],
+  ['taa','තා'],['ti','ති'],['tii','තී'],['tu','තු'],['tuu','තූ'],['te','තෙ'],['tee','තේ'],['to','තො'],['too','තෝ'],['ta','ත'],
+  ['daa','දා'],['di','දි'],['dii','දී'],['du','දු'],['duu','දූ'],['de','දෙ'],['dee','දේ'],['do','දො'],['doo','දෝ'],['da','ද'],
+  ['paa','පා'],['pi','පි'],['pii','පී'],['pu','පු'],['puu','පූ'],['pe','පෙ'],['pee','පේ'],['po','පො'],['poo','පෝ'],['pa','ප'],
+  ['baa','බා'],['bi','බි'],['bii','බී'],['bu','බු'],['buu','බූ'],['be','බෙ'],['bee','බේ'],['bo','බො'],['boo','බෝ'],['ba','බ'],
+  ['maa','මා'],['mi','මි'],['mii','මී'],['mu','මු'],['muu','මූ'],['me','මෙ'],['mee','මේ'],['mo','මො'],['moo','මෝ'],['ma','ම'],
+  ['raa','රා'],['ri','රි'],['rii','රී'],['ru','රු'],['ruu','රූ'],['re','රෙ'],['ree','රේ'],['ro','රො'],['roo','රෝ'],['ra','ර'],
+  ['laa','ලා'],['li','ලි'],['lii','ලී'],['lu','ලු'],['luu','ලූ'],['le','ලෙ'],['lee','ලේ'],['lo','ලො'],['loo','ලෝ'],['la','ල'],
+  ['vaa','වා'],['vi','වි'],['vii','වී'],['vu','වු'],['vuu','වූ'],['ve','වෙ'],['vee','වේ'],['vo','වො'],['voo','වෝ'],['va','ව'],
+  ['wa','ව'],['we','වෙ'],['wi','වි'],['wo','වො'],
+  ['saa','සා'],['si','සි'],['sii','සී'],['su','සු'],['suu','සූ'],['se','සෙ'],['see','සේ'],['so','සො'],['soo','සෝ'],['sa','ස'],
+  ['haa','හා'],['hi','හි'],['hii','හී'],['hu','හු'],['huu','හූ'],['he','හෙ'],['hee','හේ'],['ho','හො'],['hoo','හෝ'],['ha','හ'],
+  ['yaa','යා'],['yi','යි'],['yu','යු'],['ye','යෙ'],['yo','යො'],['ya','ය'],
+  ['jaa','ජා'],['ji','ජි'],['ju','ජු'],['je','ජෙ'],['jo','ජො'],['ja','ජ'],
+  ['faa','ෆා'],['fi','ෆි'],['fu','ෆු'],['fe','ෆෙ'],['fo','ෆො'],['fa','ෆ'],
+  ['aa','ආ'],['ii','ඊ'],['uu','ඌ'],['ee','ඒ'],['oo','ඕ'],['ae','ඇ'],
+  ['k','ක්'],['g','ග්'],['n','න්'],['t','ත්'],['d','ද්'],
+  ['p','ප්'],['b','බ්'],['m','ම්'],['r','ර්'],['l','ල්'],
+  ['v','ව්'],['s','ස්'],['h','හ්'],['y','ය්'],
+  ['a','අ'],['i','ඉ'],['u','උ'],['e','එ'],['o','ඔ'],
 ];
+
+function convertToSinhala(roman) {
+  let result = '', i = 0;
+  const s = roman.toLowerCase();
+  while (i < s.length) {
+    let matched = false;
+    for (const [rom, sin] of sinhalaMap) {
+      if (s.startsWith(rom, i)) { result += sin; i += rom.length; matched = true; break; }
+    }
+    if (!matched) i++;
+  }
+  return result;
+}
 
 // Word dictionary — common grocery / product terms
 const _PHWORDS = {
@@ -2220,82 +2237,33 @@ const _PHWORDS = {
   'watura':'වතුර','tel':'තෙල්','sini':'සීනි','piti':'පිටි',
   'dambulu':'දඹුළු','polos':'පොළොස්','kohila':'කොහිල',
   'kathurumurunga':'කතුරුමුරුංගා','gotukola':'ගොටුකොළ',
-  'kaju':'කජු','etti':'ඇට්ටි','goda':'ගොඩ','thambili':'තඹිලි',
-  'kurumba':'කුරුඹා','puhul':'පුහුල්','kadala':'කඩල',
-  'thenga':'තෙංගා','pol':'පොල්','rice':'හාල්','dal':'පරිප්පු',
+  'kaju':'කජු','thambili':'තඹිලි','kurumba':'කුරුඹා',
+  'puhul':'පුහුල්','kadala':'කඩල','thenga':'තෙංගා',
+  'pol':'පොල්','rice':'හාල්','dal':'පරිප්පු',
   'noodles':'නූඩ්ල්ස්','sugar':'සීනි','salt':'ලූනු','milk':'කිරි',
   'butter':'බටර්','egg':'බිත්තර','bread':'පාන්','oil':'තෙල්',
-  'water':'වතුර','flour':'පිටි','garlic2':'ගාර්ලික්',
+  'water':'වතුර','flour':'පිටි',
 };
-
-// Build syllable map (lazy, once)
-let _PHMAP = null, _PHMAP_KEYS = null;
-function _getPhMap() {
-  if (_PHMAP) return _PHMAP;
-  _PHMAP = Object.assign({}, _PHVOWEL);
-  for (const [cr, cs] of Object.entries(_PHCONS)) {
-    for (const [vr, vs] of _PHVSUF) {
-      const key = cr + vr;
-      if (!_PHMAP[key]) _PHMAP[key] = cs + vs;
-    }
-  }
-  _PHMAP_KEYS = Object.keys(_PHMAP).sort((a,b)=>b.length-a.length);
-  return _PHMAP;
-}
-
-// Greedy longest-match tokenizer
-function _phTokenize(s) {
-  const map = _getPhMap();
-  const keys = _PHMAP_KEYS;
-  let result = '', i = 0;
-  while (i < s.length) {
-    let hit = false;
-    for (const k of keys) {
-      if (s.startsWith(k, i)) { result += map[k]; i += k.length; hit = true; break; }
-    }
-    if (!hit) {
-      // trailing lone consonant → add hal kirima (virama)
-      let cHit = false;
-      for (const ck of _PHCONS_SORTED) {
-        if (s.startsWith(ck, i) && i + ck.length === s.length) {
-          result += _PHCONS[ck] + '්'; i += ck.length; cHit = true; break;
-        }
-      }
-      if (!cHit) i++; // skip unrecognised char
-    }
-  }
-  return result || null;
-}
 
 function _phSuggest(buf) {
   if (!buf) return [];
   const lo = buf.toLowerCase();
   const seen = new Set();
   const out = [];
-  function add(v) { if (v && !seen.has(v) && out.length < 5) { seen.add(v); out.push(v); } }
-
-  add(_PHWORDS[lo]);              // exact word match
-  const map = _getPhMap();
-  add(map[lo]);                   // exact syllable match
-  add(_phTokenize(lo));           // greedy tokenisation
-
-  // prefix word matches
+  function add(v) { if (v && !seen.has(v) && out.length < 3) { seen.add(v); out.push(v); } }
+  add(_PHWORDS[lo]);
+  add(convertToSinhala(lo));
   for (const [k, v] of Object.entries(_PHWORDS)) {
     if (k !== lo && k.startsWith(lo)) add(v);
-    if (out.length >= 5) break;
-  }
-  // prefix syllable matches
-  let pc = 0;
-  for (const k of _PHMAP_KEYS) {
-    if (k !== lo && k.startsWith(lo)) { add(map[k]); if (++pc >= 3) break; }
+    if (out.length >= 3) break;
   }
   return out;
 }
 
-// Render field value from committed + buffer
+// Render field — committed Sinhala + live conversion of buffered Roman
 function _phRenderField() {
   const el = document.getElementById('np-name-si');
-  if (el) el.value = _phCommitted + _phBuffer;
+  if (el) el.value = _phCommitted + convertToSinhala(_phBuffer);
 }
 
 // Build / refresh suggestion pill bar
@@ -2341,7 +2309,7 @@ function _phKeydown(e) {
   if (key === ' ') {
     e.preventDefault();
     const sug = _phSuggest(_phBuffer);
-    _phCommitted += (sug.length && _phBuffer ? sug[0] : _phBuffer) + ' ';
+    _phCommitted += (sug.length && _phBuffer ? sug[0] : convertToSinhala(_phBuffer)) + ' ';
     _phBuffer = ''; _phRenderField(); _phClearBar(); return;
   }
   if (key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
