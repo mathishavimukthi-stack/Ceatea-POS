@@ -1705,6 +1705,11 @@ function buildQuickAmounts(total){
 }
 function setCash(v){document.getElementById('cashReceived').value=v.toFixed(2);calcChange();}
 function calcChange(){
+  if(payMethod !== 'cash'){
+    document.getElementById('changeResult').classList.remove('visible');
+    if(cart.length > 0) document.getElementById('chargeBtn').disabled = false;
+    return;
+  }
   const total = getTotal();
   const paid = parseFloat(document.getElementById('cashReceived').value)||0;
   const res = document.getElementById('changeResult');
