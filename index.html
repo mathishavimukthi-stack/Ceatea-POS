@@ -1948,7 +1948,7 @@ function renderInventory(q=''){
       ? `<input class="tbl-input" type="number" value="${p.stock}" min="0" onchange="updateStock(${p.id},this.value)">`
       : `<span style="font-weight:600">${p.stock}</span>`;
     return `<tr>
-      <td style="display:flex;align-items:center;gap:8px">${_pAvatar(p.name,24)}<span><strong>${p.name}</strong>${p.barcode?` <span style="font-size:9px;color:var(--text4);font-family:'JetBrains Mono',monospace">${p.barcode}</span>`:''}${p.age?' <span style="font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700">18+</span>':''}</span></td>
+      <td style="display:flex;align-items:center;gap:8px;vertical-align:middle">${_pAvatar(p.name,24)}<span><strong>${p.name}</strong>${p.barcode?` <span style="font-size:9px;color:var(--text4);font-family:'JetBrains Mono',monospace">${p.barcode}</span>`:''}${p.age?' <span style="font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700">18+</span>':''}</span></td>
       <td><span style="font-size:11px;color:var(--text2)">${p.cat}</span></td>
       <td><span style="font-size:12px;font-weight:600;color:var(--text2)">${unit}</span></td>
       <td>${priceCell}</td>
@@ -2060,7 +2060,7 @@ function _pAvatar(name, sz=28) {
   for (let i = 0; i < n.length; i++) hash = n.charCodeAt(i) + ((hash << 5) - hash);
   const bg = cs[Math.abs(hash) % cs.length];
   const fs = Math.round(sz * 0.44);
-  return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0;margin:0 auto">${l}</div>`;
+  return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};display:inline-flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0;margin:0">${l}</div>`;
 }
 
 // ── PHONETIC SINHALA ENGINE (fully offline) ──
