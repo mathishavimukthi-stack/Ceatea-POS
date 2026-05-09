@@ -143,9 +143,9 @@ input,select{font-family:inherit}
 .item-card.oos{opacity:.38;cursor:not-allowed;filter:grayscale(.4)}
 .item-card.oos:hover{transform:none;box-shadow:none;border-color:var(--border)}
 .item-emoji{font-size:26px;margin-bottom:6px;display:block;line-height:1}
-.item-name{font-size:11px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:3px}
-.item-name-si{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:1px}
-.item-name-en{font-size:10px;font-weight:500;color:var(--text3);line-height:1.2;margin-bottom:3px}
+.item-name{font-size:16px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:3px}
+.item-name-si{font-size:16px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:1px}
+.item-name-en{font-size:12px;font-weight:400;color:var(--text3);line-height:1.2;margin-bottom:3px}
 .si-input-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:10px}
 .si-input-row .form-input{margin-bottom:0;flex:1}
 .si-toggle{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:11px;font-weight:700;background:var(--surface2);color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;line-height:1.4}
@@ -166,6 +166,8 @@ input,select{font-family:inherit}
 .si-kbd-btn.cl{color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg)}
 .si-kbd-btn.cl:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
 .si-kbd-divider{height:1px;background:var(--border);margin:7px 0}
+.si-kbd-display{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:5px 10px;font-size:14px;min-height:30px;margin-bottom:8px;color:var(--text);word-break:break-all;line-height:1.5;text-align:left}
+.si-kbd-display:empty::before{content:'Type to see input…';color:var(--text4);font-size:11px}
 /* ── PHONETIC MODE TOGGLE ── */
 .si-mode-bar{display:flex;gap:2px;background:var(--surface3);border-radius:6px;padding:2px;flex-shrink:0}
 .si-mode-btn{padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;color:var(--text3);transition:.15s;background:none;font-family:inherit}
@@ -1387,6 +1389,7 @@ function renderGrid(){
       : `<div class="item-name">${p.name}</div>`;
     d.innerHTML = `
       ${p.age?'<div class="item-age-badge">18+</div>':''}
+      ${_pAvatar(p.name_si||p.name,30)}
       ${nameHtml}
       <div class="item-price">Rs.${p.price.toFixed(2)}<span style="font-size:9px;font-weight:500;color:var(--text3);margin-left:2px">/${p.unit||'ea'}</span></div>
       <span class="item-stock ${sc}">${stxt}</span>
@@ -1408,7 +1411,7 @@ function showAgeModal(p){
     `<div style="text-align:center">
       <div style="font-size:42px;margin-bottom:10px">🔞</div>
       <p style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Age Verification Required</p>
-      <p style="font-size:12px;color:var(--text2)">Confirm customer is 18+ before adding <strong>${p.em} ${p.name}</strong> to the order.</p>
+      <p style="font-size:12px;color:var(--text2)">Confirm customer is 18+ before adding <strong>${p.name}</strong> to the order.</p>
     </div>`,
     'Confirm — Over 18',
     'Refuse',
@@ -1426,7 +1429,7 @@ function addToCart(p){
   else cart.push({...p, qty:1, disc:0, discType:'pct'});
   renderCart();
   renderGrid();
-  toast(`${p.em} ${p.name} added`);
+  toast(`${p.name} added`);
 }
 function changeQty(id, d){
   const i = cart.findIndex(c=>c.id===id);
@@ -1486,7 +1489,7 @@ function renderCart(){
         : '%';
       return `
       <div class="cart-item">
-        <span class="ci-emoji">${item.em}</span>
+        ${_pAvatar(item.name,26)}
         <div class="ci-info">
           <div class="ci-name">${item.name}</div>
           <div class="ci-unit">Rs.${item.price.toFixed(2)} each</div>
@@ -1703,7 +1706,7 @@ function showVoidModal(){
   if(!cart.length){toast('Cart is empty');return;}
   const rows = cart.map(item=>`
     <div class="void-item-row" onclick="voidCartItem(${item.id})">
-      <span class="void-item-em">${item.em}</span>
+      ${_pAvatar(item.name,22)}
       <span class="void-item-name">${item.name}</span>
       <span class="void-item-qty">×${item.qty}</span>
     </div>
@@ -1830,7 +1833,7 @@ function showReceiptModal(total,method,change){
     rHtml += cart.map(i=>{
       const lt=itemLineTotal(i);
       const disc=i.disc>0?` <span style="color:var(--amber);font-size:.85em">-${i.discType==='pct'?i.disc+'%':cur+(+i.disc).toFixed(2)}</span>`:'';
-      return `<div class="rcpt-item-row"><span>${i.em} ${i.name}&nbsp;&times;${i.qty}${disc}</span><span>${cur}${lt.toFixed(2)}</span></div>`;
+      return `<div class="rcpt-item-row"><span>${i.name}&nbsp;&times;${i.qty}${disc}</span><span>${cur}${lt.toFixed(2)}</span></div>`;
     }).join('');
   }
   const sub=cart.reduce((t,i)=>t+itemLineTotal(i),0);
@@ -1885,7 +1888,7 @@ function pluSearch(){
   const id = parseInt(pluVal);
   const p = products.find(x=>x.id===id);
   if(p){
-    if(p.stock===0){toast(`${p.em} ${p.name} — Out of stock`);pluVal='';updatePluDisplay();return;}
+    if(p.stock===0){toast(`${p.name} — Out of stock`);pluVal='';updatePluDisplay();return;}
     if(p.age){
       showAgeModal(p);
       pluVal='';updatePluDisplay();
@@ -1938,7 +1941,7 @@ function renderInventory(q=''){
       ? `<input class="tbl-input" type="number" value="${p.stock}" min="0" onchange="updateStock(${p.id},this.value)">`
       : `<span style="font-weight:600">${p.stock}</span>`;
     return `<tr>
-      <td><span style="margin-right:7px;font-size:15px">${p.em}</span><strong>${p.name}</strong>${p.barcode?` <span style="font-size:9px;color:var(--text4);font-family:'JetBrains Mono',monospace">${p.barcode}</span>`:''}${p.age?' <span style="font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700">18+</span>':''}</td>
+      <td style="display:flex;align-items:center;gap:8px">${_pAvatar(p.name,24)}<span><strong>${p.name}</strong>${p.barcode?` <span style="font-size:9px;color:var(--text4);font-family:'JetBrains Mono',monospace">${p.barcode}</span>`:''}${p.age?' <span style="font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;font-weight:700">18+</span>':''}</span></td>
       <td><span style="font-size:11px;color:var(--text2)">${p.cat}</span></td>
       <td><span style="font-size:12px;font-weight:600;color:var(--text2)">${unit}</span></td>
       <td>${priceCell}</td>
@@ -1949,7 +1952,7 @@ function renderInventory(q=''){
   }).join('');
   renderInvStats();
 }
-function updateStock(id,v){const p=products.find(x=>x.id===id);if(p){const old=p.stock;p.stock=Math.max(0,parseInt(v)||0);dbOp('products','update',{stock:p.stock},'id',p.id);renderGrid();renderInvStats();toast('Stock updated');addAudit('stock',`${p.em} ${p.name} stock updated: ${old} → ${p.stock}`);}}
+function updateStock(id,v){const p=products.find(x=>x.id===id);if(p){const old=p.stock;p.stock=Math.max(0,parseInt(v)||0);dbOp('products','update',{stock:p.stock},'id',p.id);renderGrid();renderInvStats();toast('Stock updated');addAudit('stock',`${p.name} stock updated: ${old} → ${p.stock}`);}}
 function updatePrice(id,v){const p=products.find(x=>x.id===id);if(p){p.price=Math.max(0,parseFloat(v)||0);dbOp('products','update',{price:p.price},'id',p.id);renderGrid();toast('Price updated');}}
 function renderInvStats(){
   const total=products.length,val=products.reduce((s,p)=>s+p.price*p.stock,0),low=products.filter(p=>p.stock>0&&p.stock<=p.low).length,out=products.filter(p=>p.stock===0).length;
@@ -1965,7 +1968,7 @@ function restockModal(id){
   openModal(
     `<p style="font-size:12px;color:var(--text2);margin-bottom:10px">Current stock: <strong>${p.stock}</strong> units</p><label class="form-label">Add units</label><input class="form-input" type="number" id="rqty" value="10" min="1"><label class="form-label">Supplier reference</label><input class="form-input" type="text" id="rref" placeholder="PO-00123">`,
     'Add stock','Cancel',
-    ()=>{const q=parseInt(document.getElementById('rqty').value)||0;if(q>0){p.stock+=q;dbOp('products','update',{stock:p.stock},'id',p.id);closeModal();renderInventory('');renderGrid();toast(`+${q} units added to ${p.name}`);addAudit('stock',`Restocked ${p.em} ${p.name} +${q} units (now ${p.stock})`);}},
+    ()=>{const q=parseInt(document.getElementById('rqty').value)||0;if(q>0){p.stock+=q;dbOp('products','update',{stock:p.stock},'id',p.id);closeModal();renderInventory('');renderGrid();toast(`+${q} units added to ${p.name}`);addAudit('stock',`Restocked ${p.name} +${q} units (now ${p.stock})`);}},
     closeModal,
     'Restock — '+p.name
   );
@@ -1987,10 +1990,8 @@ function showAddProduct(){
       <button type="button" class="si-toggle" id="si-toggle-btn" onclick="toggleSiInput()">සිං</button>
     </div>
     <div class="ph-bar" id="phBar"></div>
-    <div class="form-2">
-      <div><div class="form-label">Emoji</div><input class="form-input" type="text" id="np-em" placeholder="🍓" maxlength="2"></div>
-      <div><div class="form-label">Age restricted?</div><select class="form-select" id="np-age"><option value="no">No</option><option value="yes">Yes (18+)</option></select></div>
-    </div>
+    <div class="form-label">Age restricted?</div>
+    <select class="form-select" id="np-age" style="margin-bottom:10px"><option value="no">No</option><option value="yes">Yes (18+)</option></select>
     <div class="form-2">
       <div><div class="form-label">Price (Rs.)</div><input class="form-input" type="number" id="np-price" min="0" step="0.01" placeholder="0.00"></div>
       <div><div class="form-label">Stock</div><input class="form-input" type="number" id="np-stock" min="0" placeholder="0"></div>
@@ -2026,7 +2027,6 @@ function showAddProduct(){
       stopBarcodeScanner();
       const name=document.getElementById('np-name').value.trim();
       const name_si=document.getElementById('np-name-si').value.trim();
-      const em=document.getElementById('np-em').value||'📦';
       const price=parseFloat(document.getElementById('np-price').value)||0;
       const stock=parseInt(document.getElementById('np-stock').value)||0;
       const cat=document.getElementById('np-cat').value;
@@ -2034,7 +2034,7 @@ function showAddProduct(){
       const unit=document.getElementById('np-unit').value||'count';
       const barcode=document.getElementById('np-barcode').value.trim();
       if(!name){toast('Name is required');return;}
-      const newProd={name,name_si,em,cat,price,stock,low:5,age,unit,barcode};
+      const newProd={name,name_si,cat,price,stock,low:5,age,unit,barcode};
       const ins = await dbOp('products','insert',newProd);
       products.push({id:ins?.id||Date.now(),...newProd});
       closeModal();renderInventory('');renderGrid();toast(name+' added');
@@ -2044,6 +2044,15 @@ function showAddProduct(){
   );
   _phBarEl = document.getElementById('phBar');
 }
+// ── PRODUCT AVATAR ──
+function _pAvatar(name, sz=28) {
+  const l = (name||'?')[0].toUpperCase();
+  const cs = ['#16a97e','#2563eb','#d97706','#e53535','#7c3aed','#0891b2','#059669','#db2777'];
+  const bg = cs[l.charCodeAt(0) % cs.length];
+  const fs = Math.round(sz * 0.44);
+  return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0;margin:0 auto">${l}</div>`;
+}
+
 // ── PHONETIC SINHALA ENGINE (fully offline) ──
 let _siMode = 'kbd', _phBuffer = '', _phCommitted = '', _phBarEl = null;
 
@@ -2328,6 +2337,12 @@ function showSiKeyboard(inputEl) {
   const kb = document.createElement('div');
   kb.className = 'si-kbd';
 
+  // Input display area
+  const kbDisp = document.createElement('div');
+  kbDisp.className = 'si-kbd-display'; kbDisp.id = 'siKbdDisplay';
+  kbDisp.textContent = inputEl.value || '';
+  kb.appendChild(kbDisp);
+
   // Vowels
   const vg = _siGroup('Vowels · අකුරු');
   const vr = document.createElement('div'); vr.className = 'si-kbd-row';
@@ -2369,10 +2384,11 @@ function showSiKeyboard(inputEl) {
     if(!_siKbdEl) return;
     const v = _siKbdEl.value;
     if(!v) return;
-    // pop last Unicode code point (handles multi-byte Sinhala correctly)
     const chars = [...v]; chars.pop();
     _siKbdEl.value = chars.join('');
     _siKbdEl.focus();
+    const d = document.getElementById('siKbdDisplay');
+    if(d) d.textContent = _siKbdEl.value;
   };
   spr.appendChild(bk);
 
@@ -2380,7 +2396,7 @@ function showSiKeyboard(inputEl) {
   spr.appendChild(sp);
 
   const cl = _siBtn('','cl','Clear');
-  cl.onclick = () => { if(_siKbdEl){ _siKbdEl.value=''; _siKbdEl.focus(); } };
+  cl.onclick = () => { if(_siKbdEl){ _siKbdEl.value=''; _siKbdEl.focus(); const d=document.getElementById('siKbdDisplay');if(d)d.textContent=''; } };
   spr.appendChild(cl);
 
   kb.appendChild(spr);
@@ -2397,6 +2413,8 @@ function _siKbdInsert(ch) {
   const v = _siKbdEl.value;
   _siKbdEl.value = v.slice(0,s) + ch + v.slice(e);
   _siKbdEl.setSelectionRange(s+ch.length, s+ch.length);
+  const d = document.getElementById('siKbdDisplay');
+  if(d) d.textContent = _siKbdEl.value;
 }
 
 function _posSiKbd() {
@@ -2553,7 +2571,7 @@ function showRefund(ref){
   if(!tx) return;
   openModal(
     `<p style="font-size:11px;color:var(--text2);margin-bottom:8px">Select items to refund from ${tx.ref}:</p>
-    ${tx.items.map((item,i)=>`<div class="refund-item-row"><label><input type="checkbox" id="ri${i}" checked>${item.em} ${item.name} ×${item.qty}</label><span style="font-size:12px;font-weight:700">Rs.${(item.price*item.qty).toFixed(2)}</span></div>`).join('')}
+    ${tx.items.map((item,i)=>`<div class="refund-item-row"><label><input type="checkbox" id="ri${i}" checked>${item.name} ×${item.qty}</label><span style="font-size:12px;font-weight:700">Rs.${(item.price*item.qty).toFixed(2)}</span></div>`).join('')}
     <div style="margin-top:10px"><div class="form-label">Reason</div><select class="form-select"><option>Customer return</option><option>Defective item</option><option>Wrong item</option><option>Other</option></select></div>`,
     'Process refund','Cancel',
     ()=>{
@@ -2604,7 +2622,7 @@ function woSearchProducts(q){
   if(!matches.length){ res.style.display='none'; return; }
   res.innerHTML = matches.map(p =>
     `<div class="wo-result-item" onclick="woSelectProduct(${p.id})">
-      <span>${p.em||'📦'}</span>
+      ${_pAvatar(p.name,24)}
       <span style="flex:1">${p.name}</span>
       <span style="color:var(--text3);font-size:11px">Stock: ${p.stock}</span>
     </div>`
@@ -2620,7 +2638,7 @@ function woSelectProduct(id){
   const card = document.getElementById('woProductCard');
   card.innerHTML = `
     <div style="display:flex;align-items:center;gap:12px">
-      <div style="font-size:28px">${_woSelected.em||'📦'}</div>
+      ${_pAvatar(_woSelected.name,36)}
       <div>
         <div style="font-weight:700;font-size:14px">${_woSelected.name}</div>
         <div style="font-size:12px;color:var(--text3);margin-top:2px">Current stock: <strong style="color:var(--text)">${_woSelected.stock} ${_woSelected.unit||'count'}</strong></div>
@@ -2712,7 +2730,6 @@ function confirmWriteOff(){
   const entry = {
     id: Date.now(),
     product: _woSelected.name,
-    em: _woSelected.em || '📦',
     qty,
     reason: _woReason,
     detail,
@@ -2722,7 +2739,6 @@ function confirmWriteOff(){
   if(_api) _api.insertWriteOff({
     product_id:   _woSelected.id,
     product_name: _woSelected.name,
-    em:           _woSelected.em || '📦',
     qty, reason: _woReason, detail,
   });
   addAudit('stock', `Write-off: ${qty}x ${_woSelected.name} (${_woReason})`);
@@ -2753,7 +2769,7 @@ function renderWoHistory(){
       </tr></thead>
       <tbody>
         ${writeOffs.map(w=>`<tr>
-          <td><span style="margin-right:6px">${w.em}</span>${w.product}</td>
+          <td style="display:flex;align-items:center;gap:6px">${_pAvatar(w.product,22)}${w.product}</td>
           <td style="font-weight:600;color:var(--red)">${w.qty}</td>
           <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--amber-bg);color:var(--amber);font-weight:600">${w.reason}</span></td>
           <td style="color:var(--text3);font-size:12px">${w.detail||'—'}</td>
@@ -2810,7 +2826,7 @@ function renderDashboard(){
   document.getElementById('dashTop').innerHTML=top.length?top.map((it,i)=>`
     <div class="top-item">
       <span class="top-rank">${i+1}</span>
-      <span class="top-em">${it.em}</span>
+      ${_pAvatar(it.name,26)}
       <span class="top-name">${it.name}</span>
       <div class="top-bar-bg"><div class="top-bar-fill" style="width:${(it.rev/mxR)*100}%"></div></div>
       <span class="top-rev">Rs.${it.rev.toFixed(2)}</span>
@@ -2820,7 +2836,7 @@ function renderDashboard(){
   document.getElementById('dashAlerts').innerHTML=lowItems.length?lowItems.map(p=>`
     <div class="alert-item">
       <div class="alert-dot ${p.stock===0?'red':'amber'}"></div>
-      <span style="font-size:15px">${p.em}</span>
+      ${_pAvatar(p.name,26)}
       <div style="flex:1">
         <div style="font-size:12px;font-weight:600;color:var(--text)">${p.name}</div>
         <div style="font-size:10px;color:var(--text3)">${p.stock===0?'Out of stock':`${p.stock} left`}</div>

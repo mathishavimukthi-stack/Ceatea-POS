@@ -58,7 +58,6 @@ function registerIpcHandlers() {
       id:      r.id,
       name:    r.name,
       name_si: r.name_si || '',
-      em:      r.em || '📦',
       cat:     r.cat,
       price:   r.price,
       stock:   r.stock,
