@@ -1827,7 +1827,7 @@ function initiateCharge(){
   } else if(payMethod==='split'){
     processPayment(total,'split',null);
   } else {
-    showCardModal(total);
+    processPayment(total, payMethod, null);
   }
 }
 function showCardModal(total){
