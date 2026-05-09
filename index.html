@@ -52,6 +52,10 @@ input,select{font-family:inherit}
 .nav-fs-btn svg{width:16px;height:16px;flex-shrink:0}
 .nav-logout{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);padding:5px 10px;border-radius:5px;cursor:pointer;transition:.15s;border:1px solid rgba(255,255,255,.12)}
 .nav-logout:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-update-badge{display:none;align-items:center;gap:5px;padding:4px 10px;border-radius:5px;background:rgba(217,119,6,.25);border:1px solid rgba(217,119,6,.5);color:#fcd34d;font-size:11px;font-weight:700;cursor:pointer;transition:.15s;animation:badgePulse 2s ease-in-out infinite}
+.nav-update-badge:hover{background:rgba(217,119,6,.45)}
+.nav-update-badge.visible{display:flex}
+@keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.65}}
 .nav-role-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.4px}
 .nav-role-badge.admin{background:rgba(22,169,126,.25);color:#4ade80}
 .nav-role-badge.staff{background:rgba(37,99,235,.25);color:#93c5fd}
@@ -623,6 +627,9 @@ tbody tr:hover{background:var(--surface2)}
         <div class="nav-avatar" id="navAvatar">?</div>
         <span class="nav-user-name" id="navUserName">—</span>
       </div>
+      <button class="nav-update-badge" id="updateBadge" onclick="triggerUpdate()" title="Update ready — click to install">
+        ↑ Update ready
+      </button>
       <button class="nav-logout" onclick="logout()">Sign out</button>
     </div>
   </nav>
@@ -3518,6 +3525,16 @@ function canAccess(section){
   if(!currentUser) return false;
   if(currentUser.role === 'admin') return true;
   return STAFF_ALLOWED.includes(section);
+}
+
+// ── AUTO-UPDATE BRIDGE ──
+if (window.electronAPI?.onUpdateBadge) {
+  window.electronAPI.onUpdateBadge(() => {
+    document.getElementById('updateBadge')?.classList.add('visible');
+  });
+}
+function triggerUpdate() {
+  if (window.electronAPI?.downloadUpdate) window.electronAPI.downloadUpdate();
 }
 
 // ── INIT ──

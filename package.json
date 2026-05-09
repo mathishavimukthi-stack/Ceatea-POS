@@ -10,7 +10,8 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3"
+    "better-sqlite3": "^9.4.3",
+    "electron-updater": "^6.8.3"
   },
   "devDependencies": {
     "electron": "^28.3.3",
@@ -44,6 +45,10 @@
           ]
         }
       ]
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "http://SERVER_IP:3000/updates"
     },
     "nsis": {
       "oneClick": false,

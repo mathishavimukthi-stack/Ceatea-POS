@@ -21,4 +21,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Write-offs (own table, special handler for history load)
   insertWriteOff: (data) => ipcRenderer.invoke('db:insertWriteOff', data),
+
+  // Auto-updater
+  onUpdateBadge:  (cb) => ipcRenderer.on('update:badge-show', cb),
+  downloadUpdate: ()   => ipcRenderer.send('update:download-now'),
 });
