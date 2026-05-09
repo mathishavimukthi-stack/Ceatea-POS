@@ -1735,6 +1735,7 @@ function calcChange(){
 
 // ── SPLIT ──
 function calcSplit(changed){
+  if(payMethod !== 'split') return;
   const total = getTotal();
   if(!total) return;
   const cardEl = document.getElementById('splitCard');
