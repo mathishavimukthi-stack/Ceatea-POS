@@ -151,12 +151,12 @@ input,select{font-family:inherit}
 .si-toggle{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:11px;font-weight:700;background:var(--surface2);color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;line-height:1.4}
 .si-toggle.on{background:var(--g);color:#fff;border-color:var(--g)}
 /* ── SINHALA ON-SCREEN KEYBOARD ── */
-.si-kbd{position:fixed;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:10px 12px 12px;width:358px;z-index:1100;animation:siKbdIn .15s ease}
+.si-kbd{position:fixed;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:8px 10px 10px;width:358px;max-height:300px;overflow-y:auto;z-index:1100;animation:siKbdIn .15s ease}
 @keyframes siKbdIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 .si-kbd-group{margin-bottom:7px}
 .si-kbd-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .si-kbd-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
-.si-kbd-btn{min-width:36px;height:36px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0;padding:0 4px;line-height:1}
+.si-kbd-btn{min-width:32px;width:32px;height:32px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;flex-shrink:0;padding:0 2px;line-height:1}
 .si-kbd-btn:hover{background:var(--g3);border-color:var(--g);color:var(--g2)}
 .si-kbd-btn:active{transform:scale(.92);background:var(--g);color:#fff;border-color:var(--g)}
 .si-kbd-btn.sp{font-size:11px;font-weight:700;color:var(--text2);min-width:48px;background:var(--surface3)}
@@ -2402,12 +2402,12 @@ function _siKbdInsert(ch) {
 function _posSiKbd() {
   if(!_siKbd || !_siKbdEl) return;
   const r = _siKbdEl.getBoundingClientRect();
-  const kw = 358, kh = 380;
+  const kw = 358, kh = 300;
   let left = r.left;
-  let top  = r.bottom + 5;
-  if (left + kw > window.innerWidth - 8)  left = window.innerWidth - kw - 8;
+  let top  = r.top - kh - 5;
+  if (top < 8) top = 8;
+  if (left + kw > window.innerWidth - 8) left = window.innerWidth - kw - 8;
   if (left < 8) left = 8;
-  if (top + kh > window.innerHeight - 8)  top = r.top - kh - 5;
   _siKbd.style.left = left + 'px';
   _siKbd.style.top  = top  + 'px';
 }
