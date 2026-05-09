@@ -1350,7 +1350,6 @@ function renderGrid(){
     d.className = 'item-card' + (p.stock===0?' oos':'');
     d.innerHTML = `
       ${p.age?'<div class="item-age-badge">18+</div>':''}
-      <span class="item-emoji">${p.em}</span>
       <div class="item-name">${p.name}</div>
       <div class="item-price">Rs.${p.price.toFixed(2)}<span style="font-size:9px;font-weight:500;color:var(--text3);margin-left:2px">/${p.unit||'ea'}</span></div>
       <span class="item-stock ${sc}">${stxt}</span>
