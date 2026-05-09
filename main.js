@@ -4,7 +4,7 @@ const path = require('path');
 
 // ── UPDATE SERVER URL ─────────────────────────────────────────────────────────
 // Change this IP to match the server PC on your local network.
-const UPDATE_SERVER_URL = 'http://SERVER_IP:3000/updates';
+const UPDATE_SERVER_URL = 'http://192.168.1.17:3000/updates';
 
 setImmediate(() => {
   const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
@@ -98,8 +98,8 @@ setImmediate(() => {
 
   // ── APP LIFECYCLE ──────────────────────────────────────────────────────────
   app.whenReady().then(() => {
-    registerIpcHandlers();
     createWindow();
+    registerIpcHandlers(mainWindow);
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();

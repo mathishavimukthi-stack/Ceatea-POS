@@ -1,185 +1,185 @@
 'use strict';
 
-const { ipcMain } = require('electron');
-const { getDb }   = require('./db');
+const { ipcMain }                    = require('electron');
+const { getSupabase, resetSupabase } = require('./supabase-client');
+const { readConfig, writeConfig }    = require('./config');
 
-// Tables the renderer is allowed to touch
 const ALLOWED = new Set(['products','transactions','customers','credit_accounts','quotations','invoices']);
 
-// Serialize data for SQLite: stringify arrays/objects so they land as TEXT
-function prep(data) {
-  const out = {};
-  for (const [k, v] of Object.entries(data)) {
-    out[k] = (Array.isArray(v) || (v !== null && typeof v === 'object'))
-      ? JSON.stringify(v)
-      : v;
-  }
-  return out;
-}
+let _mainWindow      = null;
+let _realtimeChannel = null;
 
-function registerIpcHandlers() {
-  const db = getDb();
+function registerIpcHandlers(mainWindow) {
+  _mainWindow = mainWindow;
 
   // ── GENERIC INSERT / UPDATE / DELETE ─────────────────────────────────────
-  ipcMain.handle('db:op', (_e, table, method, data, matchField, matchVal) => {
+  ipcMain.handle('db:op', async (_e, table, method, data, matchField, matchVal) => {
     if (!ALLOWED.has(table)) throw new Error(`Table "${table}" not allowed`);
+    const sb = getSupabase();
 
     if (method === 'insert') {
-      const d    = prep(data);
-      const keys = Object.keys(d);
-      const sql  = `INSERT INTO ${table} (${keys.join(',')}) VALUES (${keys.map(() => '?').join(',')})`;
-      const info = db.prepare(sql).run(...Object.values(d));
-      return { id: info.lastInsertRowid };
+      const { data: row, error } = await sb.from(table).insert(data).select().single();
+      if (error) throw new Error(error.message);
+      return { id: row.id };
     }
 
     if (method === 'update') {
-      const d    = prep(data);
-      const keys = Object.keys(d);
-      const sql  = `UPDATE ${table} SET ${keys.map(k => `${k}=?`).join(',')} WHERE ${matchField}=?`;
-      db.prepare(sql).run(...Object.values(d), matchVal);
+      const { error } = await sb.from(table).update(data).eq(matchField, matchVal);
+      if (error) throw new Error(error.message);
       return { ok: true };
     }
 
     if (method === 'delete') {
-      db.prepare(`DELETE FROM ${table} WHERE ${matchField}=?`).run(matchVal);
+      const { error } = await sb.from(table).delete().eq(matchField, matchVal);
+      if (error) throw new Error(error.message);
       return { ok: true };
     }
 
     throw new Error(`Unknown method: ${method}`);
   });
 
-  // ── INIT DATA — load all tables at startup ────────────────────────────────
-  ipcMain.handle('db:initData', () => {
-    const parse = (str, fallback = []) => {
-      try { return JSON.parse(str); } catch { return fallback; }
+  // ── INIT DATA ─────────────────────────────────────────────────────────────
+  ipcMain.handle('db:initData', async () => {
+    let sb;
+    try { sb = getSupabase(); } catch {
+      return { products: [], transactions: [], customers: [], creditAccounts: [], quotations: [], invoices: [], writeOffs: [], notConfigured: true };
+    }
+
+    const [
+      { data: pRaw  }, { data: txRaw }, { data: cuRaw },
+      { data: crRaw }, { data: quRaw }, { data: inRaw }, { data: woRaw },
+    ] = await Promise.all([
+      sb.from('products').select('*').order('id'),
+      sb.from('transactions').select('*').order('created_at', { ascending: false }),
+      sb.from('customers').select('*').order('id'),
+      sb.from('credit_accounts').select('*').order('id'),
+      sb.from('quotations').select('*').order('created_at', { ascending: false }),
+      sb.from('invoices').select('*').order('created_at', { ascending: false }),
+      sb.from('write_offs').select('*').order('created_at', { ascending: false }),
+    ]);
+
+    const arr = v => Array.isArray(v) ? v : (typeof v === 'string' ? JSON.parse(v) : []);
+
+    return {
+      products: (pRaw || []).map(r => ({
+        id: r.id, name: r.name, name_si: r.name_si || '', cat: r.cat,
+        price: r.price, stock: r.stock, low: r.low, age: !!r.age,
+        barcode: r.barcode || '', unit: r.unit || 'count', is_favourite: !!r.is_favourite,
+      })),
+      transactions: (txRaw || []).map(r => ({
+        id: r.id, ref: r.ref, type: r.type, method: r.method,
+        total: r.total, items: arr(r.items), time: r.created_at,
+      })),
+      customers: (cuRaw || []).map(r => ({
+        id: r.id, name: r.name, email: r.email || '', phone: r.phone || '',
+        creditBalance: r.credit_balance || 0, joined: r.created_at,
+      })),
+      creditAccounts: (crRaw || []).map(r => ({
+        id: r.id, name: r.name, limit: r.credit_limit,
+        balance: r.balance, history: arr(r.history),
+      })),
+      quotations: (quRaw || []).map(r => ({
+        id: r.id, customer: r.customer, items: arr(r.items),
+        total: r.total, status: r.status, date: r.created_at,
+      })),
+      invoices: (inRaw || []).map(r => ({
+        id: r.id, customer: r.customer, items: arr(r.items),
+        total: r.total, status: r.status, date: r.created_at, due: r.due_date || null,
+      })),
+      writeOffs: (woRaw || []).map(r => ({
+        id: r.id, product: r.product_name, em: r.em || '📦',
+        qty: r.qty, reason: r.reason, detail: r.detail || '', time: r.created_at,
+      })),
     };
-
-    const products = db.prepare('SELECT * FROM products ORDER BY id').all().map(r => ({
-      id:           r.id,
-      name:         r.name,
-      name_si:      r.name_si      || '',
-      cat:          r.cat,
-      price:        r.price,
-      stock:        r.stock,
-      low:          r.low,
-      age:          !!r.age,
-      barcode:      r.barcode      || '',
-      unit:         r.unit         || 'count',
-      is_favourite: !!r.is_favourite,
-    }));
-
-    const transactions = db.prepare(
-      'SELECT * FROM transactions ORDER BY created_at DESC'
-    ).all().map(r => ({
-      id:     r.id,
-      ref:    r.ref,
-      type:   r.type,
-      method: r.method,
-      total:  r.total,
-      items:  parse(r.items),
-      time:   r.created_at,
-    }));
-
-    const customers = db.prepare('SELECT * FROM customers ORDER BY id').all().map(r => ({
-      id:            r.id,
-      name:          r.name,
-      email:         r.email  || '',
-      phone:         r.phone  || '',
-      creditBalance: r.credit_balance || 0,
-      joined:        r.created_at,
-    }));
-
-    const creditAccounts = db.prepare('SELECT * FROM credit_accounts ORDER BY id').all().map(r => ({
-      id:      r.id,
-      name:    r.name,
-      limit:   r.credit_limit,
-      balance: r.balance,
-      history: parse(r.history),
-    }));
-
-    const quotations = db.prepare(
-      'SELECT * FROM quotations ORDER BY created_at DESC'
-    ).all().map(r => ({
-      id:       r.id,
-      customer: r.customer,
-      items:    parse(r.items),
-      total:    r.total,
-      status:   r.status,
-      date:     r.created_at,
-    }));
-
-    const invoices = db.prepare(
-      'SELECT * FROM invoices ORDER BY created_at DESC'
-    ).all().map(r => ({
-      id:       r.id,
-      customer: r.customer,
-      items:    parse(r.items),
-      total:    r.total,
-      status:   r.status,
-      date:     r.created_at,
-      due:      r.due_date || null,
-    }));
-
-    const writeOffs = db.prepare(
-      'SELECT * FROM write_offs ORDER BY created_at DESC'
-    ).all().map(r => ({
-      id:      r.id,
-      product: r.product_name,
-      em:      r.em || '📦',
-      qty:     r.qty,
-      reason:  r.reason,
-      detail:  r.detail || '',
-      time:    r.created_at,
-    }));
-
-    return { products, transactions, customers, creditAccounts, quotations, invoices, writeOffs };
   });
 
   // ── WRITE-OFFS ────────────────────────────────────────────────────────────
-  ipcMain.handle('db:insertWriteOff', (_e, data) => {
-    const info = db.prepare(`
-      INSERT INTO write_offs (product_id,product_name,em,qty,reason,detail)
-      VALUES (?,?,?,?,?,?)
-    `).run(
-      data.product_id   || null,
-      data.product_name || '',
-      data.em           || '📦',
-      data.qty,
-      data.reason,
-      data.detail       || ''
-    );
-    return { id: info.lastInsertRowid };
+  ipcMain.handle('db:insertWriteOff', async (_e, data) => {
+    const sb = getSupabase();
+    const { data: row, error } = await sb.from('write_offs').insert({
+      product_id:   data.product_id   || null,
+      product_name: data.product_name || '',
+      em:           data.em           || '📦',
+      qty:          data.qty,
+      reason:       data.reason,
+      detail:       data.detail       || '',
+    }).select().single();
+    if (error) throw new Error(error.message);
+    return { id: row.id };
   });
 
   // ── SETTINGS ─────────────────────────────────────────────────────────────
-  ipcMain.handle('db:getSetting', (_e, key) => {
-    const row = db.prepare('SELECT value FROM settings WHERE key=?').get(key);
-    return row ? row.value : null;
+  ipcMain.handle('db:getSetting', async (_e, key) => {
+    try {
+      const sb = getSupabase();
+      const { data, error } = await sb.from('settings').select('value').eq('key', key).maybeSingle();
+      if (error) throw new Error(error.message);
+      return data ? data.value : null;
+    } catch { return null; }
   });
 
-  ipcMain.handle('db:setSetting', (_e, key, value) => {
-    db.prepare('INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)').run(key, value);
+  ipcMain.handle('db:setSetting', async (_e, key, value) => {
+    const sb = getSupabase();
+    const { error } = await sb.from('settings').upsert({ key, value });
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
-  // ── SESSION ───────────────────────────────────────────────────────────────
-  ipcMain.handle('db:getSession', () => {
-    const row = db.prepare("SELECT value FROM settings WHERE key='__session'").get();
-    if (!row) return null;
-    try { return JSON.parse(row.value); } catch { return null; }
-  });
+  // ── SESSION (stored locally — per machine) ────────────────────────────────
+  ipcMain.handle('db:getSession', () => readConfig().session || null);
 
   ipcMain.handle('db:setSession', (_e, data) => {
-    db.prepare("INSERT OR REPLACE INTO settings (key,value) VALUES ('__session',?)").run(
-      JSON.stringify(data)
-    );
+    writeConfig({ session: data });
     return { ok: true };
   });
 
   ipcMain.handle('db:clearSession', () => {
-    db.prepare("DELETE FROM settings WHERE key='__session'").run();
+    writeConfig({ session: null });
     return { ok: true };
   });
+
+  // ── SUPABASE CONFIG ───────────────────────────────────────────────────────
+  ipcMain.handle('config:get', () => {
+    const cfg = readConfig();
+    return { supabaseUrl: cfg.supabaseUrl || '', supabaseKey: cfg.supabaseKey || '' };
+  });
+
+  ipcMain.handle('config:set', async (_e, cfg) => {
+    writeConfig({ supabaseUrl: cfg.supabaseUrl, supabaseKey: cfg.supabaseKey });
+    resetSupabase();
+    setupRealtime();
+    return { ok: true };
+  });
+
+  // ── REALTIME ──────────────────────────────────────────────────────────────
+  setupRealtime();
+}
+
+function setupRealtime() {
+  try {
+    const sb = getSupabase();
+
+    if (_realtimeChannel) {
+      sb.removeChannel(_realtimeChannel);
+      _realtimeChannel = null;
+    }
+
+    _realtimeChannel = sb.channel('ceatea-pos')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
+        _mainWindow?.webContents.send('realtime:change', { table: 'products', payload });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, payload => {
+        _mainWindow?.webContents.send('realtime:change', { table: 'transactions', payload });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, payload => {
+        _mainWindow?.webContents.send('realtime:change', { table: 'customers', payload });
+      })
+      .subscribe(status => {
+        _mainWindow?.webContents.send('realtime:status', status === 'SUBSCRIBED');
+      });
+  } catch {
+    _mainWindow?.webContents.send('realtime:status', false);
+  }
 }
 
 module.exports = { registerIpcHandlers };

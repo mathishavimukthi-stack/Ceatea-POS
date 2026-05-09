@@ -14,13 +14,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSetting: (key)        => ipcRenderer.invoke('db:getSetting', key),
   setSetting: (key, value) => ipcRenderer.invoke('db:setSetting', key, value),
 
-  // Login session
+  // Login session (stored locally on each PC)
   getSession:   ()     => ipcRenderer.invoke('db:getSession'),
   setSession:   (data) => ipcRenderer.invoke('db:setSession', data),
   clearSession: ()     => ipcRenderer.invoke('db:clearSession'),
 
-  // Write-offs (own table, special handler for history load)
+  // Write-offs
   insertWriteOff: (data) => ipcRenderer.invoke('db:insertWriteOff', data),
+
+  // Supabase config (URL + anon key, stored locally)
+  configGet: ()    => ipcRenderer.invoke('config:get'),
+  configSet: (cfg) => ipcRenderer.invoke('config:set', cfg),
+
+  // Realtime events pushed from main process
+  onRealtimeChange: (cb) => ipcRenderer.on('realtime:change', cb),
+  onRealtimeStatus: (cb) => ipcRenderer.on('realtime:status', cb),
 
   // Auto-updater
   onUpdateBadge:  (cb) => ipcRenderer.on('update:badge-show', cb),

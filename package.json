@@ -1,16 +1,15 @@
 {
   "name": "ceatea-pos",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Ceatea Point of Sale — Desktop Edition",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --win --x64",
-    "postinstall": "electron-builder install-app-deps"
+    "dist": "electron-builder --win --x64"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3",
+    "@supabase/supabase-js": "^2.105.4",
     "electron-updater": "^6.8.3"
   },
   "devDependencies": {
@@ -22,14 +21,12 @@
     "productName": "Ceatea POS",
     "copyright": "Copyright © 2025 Ceatea",
     "asar": true,
-    "asarUnpack": [
-      "**/better-sqlite3/**"
-    ],
     "files": [
       "main.js",
       "preload.js",
-      "db.js",
       "ipc-handlers.js",
+      "config.js",
+      "supabase-client.js",
       "index.html",
       "assets/**",
       "node_modules/**"
@@ -48,7 +45,7 @@
     },
     "publish": {
       "provider": "generic",
-      "url": "http://SERVER_IP:3000/updates"
+      "url": "http://192.168.1.17:3000/updates"
     },
     "nsis": {
       "oneClick": false,

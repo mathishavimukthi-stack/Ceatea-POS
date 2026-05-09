@@ -615,6 +615,9 @@ tbody tr:hover{background:var(--surface2)}
 .audit-ic.system{background:var(--surface2)}
 .audit-msg{font-size:12px;font-weight:500;color:var(--text)}
 .audit-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.db-status-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;transition:background .4s;cursor:default}
+.db-status-dot.connected{background:#22c55e}
+.db-status-dot.offline{background:var(--red)}
 </style>
 </head>
 <body>
@@ -634,6 +637,7 @@ tbody tr:hover{background:var(--surface2)}
     </div>
     <div class="nav-right">
       <span class="nav-clock" id="navClock">--:--</span>
+      <div id="dbStatusDot" class="db-status-dot" title="Database: connecting…"></div>
       <button class="nav-fs-btn" id="fsBtn" onclick="toggleFullscreen()" title="Toggle fullscreen">
         <svg id="fsIconEnter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
@@ -1179,6 +1183,23 @@ tbody tr:hover{background:var(--surface2)}
               <div class="settings-row"><div class="settings-rl"><strong>Auto-print receipt</strong><span>Send to printer immediately after each sale</span></div><label class="tog"><input type="checkbox" id="cfg-autoprint"><span class="tog-sl"></span></label></div>
             </div>
 
+            <!-- DATABASE -->
+            <div class="settings-sec">
+              <div class="settings-sec-title">Database</div>
+              <div class="settings-row">
+                <div class="settings-rl"><strong>Supabase URL</strong><span>Project API URL — from Supabase dashboard → Settings → API</span></div>
+                <input class="settings-inp" type="text" id="cfg-sb-url" placeholder="https://xxxx.supabase.co" style="min-width:260px">
+              </div>
+              <div class="settings-row">
+                <div class="settings-rl"><strong>Anon Key</strong><span>Public API key — safe to store locally on each terminal</span></div>
+                <input class="settings-inp" type="password" id="cfg-sb-key" placeholder="eyJ…" style="min-width:260px">
+              </div>
+              <div class="settings-row" style="gap:12px">
+                <button class="btn-primary" style="font-size:12px;padding:6px 14px" onclick="saveDbConfig()">Save &amp; Reconnect</button>
+                <span id="db-cfg-status" style="font-size:12px;color:var(--text3)"></span>
+              </div>
+            </div>
+
             <!-- SYSTEM -->
             <div class="settings-sec">
               <div class="settings-sec-title">System</div>
@@ -1233,7 +1254,7 @@ tbody tr:hover{background:var(--surface2)}
 </div>
 
 <script>
-// ── DATABASE (Electron IPC → SQLite) ─────────────────────────────────────
+// ── DATABASE (Electron IPC → Supabase) ───────────────────────────────────
 const _api = window.electronAPI || null;
 
 async function dbOp(table, method, data, matchField, matchVal){
@@ -1342,6 +1363,7 @@ function sideNav(section){
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   const sbId=SB_MAP[section];
   if(sbId)document.getElementById(sbId)?.classList.add('active');
+  if(section==='settings') loadDbConfig();
 }
 function switchView(v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
@@ -1699,7 +1721,7 @@ function selPay(m){
 function buildQuickAmounts(total){
   const qa = document.getElementById('quickAmounts');
   if(!total){qa.innerHTML='';return;}
-  const candidates = [parseFloat(total.toFixed(2)),Math.ceil(total/5)*5,Math.ceil(total/10)*10,Math.ceil(total/20)*20,50,100];
+  const candidates = [parseFloat(total.toFixed(2)),Math.ceil(total/50)*50,Math.ceil(total/100)*100,Math.ceil(total/500)*500,200,500,1000,2000,5000];
   const unique = [...new Set(candidates.map(v=>Math.round(v*100)/100))].filter(v=>v>=total-0.001).slice(0,5);
   qa.innerHTML = unique.map(v=>`<button class="qa-btn${Math.abs(v-total)<0.01?' exact':''}" onclick="setCash(${v})">Rs.${v%1===0?v:v.toFixed(2)}</button>`).join('');
 }
@@ -3578,11 +3600,16 @@ function toast(msg){
   clearTimeout(_tt);_tt=setTimeout(()=>el.style.display='none',2400);
 }
 
-// ── INIT DB (SQLite via Electron IPC) ─────────────────────────────────────
+// ── INIT DB (Supabase via Electron IPC) ──────────────────────────────────
 async function initDB(){
   if(!_api) return;
   try {
     const d = await _api.initData();
+
+    if(d.notConfigured){
+      toast('⚠️ Database not configured — go to Settings → Database');
+      return;
+    }
 
     if(d.products?.length){
       products = d.products; // already mapped by ipc-handlers
@@ -3705,6 +3732,79 @@ if (window.electronAPI?.onUpdateBadge) {
 }
 function triggerUpdate() {
   if (window.electronAPI?.downloadUpdate) window.electronAPI.downloadUpdate();
+}
+
+// ── SUPABASE CONFIG ───────────────────────────────────────────────────────
+async function loadDbConfig(){
+  if(!_api?.configGet) return;
+  const cfg = await _api.configGet();
+  const urlEl = document.getElementById('cfg-sb-url');
+  const keyEl = document.getElementById('cfg-sb-key');
+  if(urlEl) urlEl.value = cfg.supabaseUrl || '';
+  if(keyEl) keyEl.value = cfg.supabaseKey || '';
+}
+
+async function saveDbConfig(){
+  const url = document.getElementById('cfg-sb-url')?.value.trim() || '';
+  const key = document.getElementById('cfg-sb-key')?.value.trim() || '';
+  const st  = document.getElementById('db-cfg-status');
+  if(st) st.textContent = 'Saving…';
+  try {
+    await _api.configSet({ supabaseUrl: url, supabaseKey: key });
+    if(st) st.textContent = 'Saved — reconnecting…';
+    setTimeout(() => { if(st) st.textContent = ''; }, 3000);
+    await initDB();
+  } catch(e) {
+    if(st) st.textContent = 'Error: ' + e.message;
+  }
+}
+
+// ── REALTIME ──────────────────────────────────────────────────────────────
+function _mapProductRow(r){
+  return { id:r.id, name:r.name, name_si:r.name_si||'', cat:r.cat, price:r.price,
+    stock:r.stock, low:r.low, age:!!r.age, barcode:r.barcode||'',
+    unit:r.unit||'count', is_favourite:!!r.is_favourite };
+}
+function _mapTxRow(r){
+  const arr=v=>Array.isArray(v)?v:(typeof v==='string'?JSON.parse(v):[]);
+  return { id:r.id, ref:r.ref, type:r.type, method:r.method, total:r.total,
+    items:arr(r.items), time:new Date(r.created_at) };
+}
+function _mapCustRow(r){
+  return { id:r.id, name:r.name, email:r.email||'', phone:r.phone||'',
+    creditBalance:r.credit_balance||0, joined:new Date(r.created_at) };
+}
+
+function handleRealtimeChange(table, payload){
+  const { eventType, new: nr, old: or } = payload;
+  if(table === 'products'){
+    if(eventType==='INSERT'){ products.push(_mapProductRow(nr)); }
+    else if(eventType==='UPDATE'){ const i=products.findIndex(p=>p.id===nr.id); if(i!==-1) products[i]=_mapProductRow(nr); }
+    else if(eventType==='DELETE'){ const i=products.findIndex(p=>p.id===or.id); if(i!==-1) products.splice(i,1); }
+    renderGrid?.(); renderInvStats?.();
+  }
+  if(table === 'transactions'){
+    if(eventType==='INSERT'){ transactions.unshift(_mapTxRow(nr)); }
+    else if(eventType==='UPDATE'){ const i=transactions.findIndex(t=>t.id===nr.id); if(i!==-1) transactions[i]=_mapTxRow(nr); }
+    else if(eventType==='DELETE'){ const i=transactions.findIndex(t=>t.id===or.id); if(i!==-1) transactions.splice(i,1); }
+  }
+  if(table === 'customers'){
+    if(eventType==='INSERT'){ customers.push(_mapCustRow(nr)); }
+    else if(eventType==='UPDATE'){ const i=customers.findIndex(c=>c.id===nr.id); if(i!==-1) customers[i]=_mapCustRow(nr); }
+    else if(eventType==='DELETE'){ const i=customers.findIndex(c=>c.id===or.id); if(i!==-1) customers.splice(i,1); }
+  }
+}
+
+if(_api?.onRealtimeChange){
+  _api.onRealtimeChange((_e, data) => handleRealtimeChange(data.table, data.payload));
+}
+if(_api?.onRealtimeStatus){
+  _api.onRealtimeStatus((_e, connected) => {
+    const dot = document.getElementById('dbStatusDot');
+    if(!dot) return;
+    dot.className = 'db-status-dot ' + (connected ? 'connected' : 'offline');
+    dot.title = 'Database: ' + (connected ? 'connected (live sync active)' : 'offline');
+  });
 }
 
 // ── INIT ──
