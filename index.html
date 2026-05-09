@@ -166,6 +166,18 @@ input,select{font-family:inherit}
 .si-kbd-btn.cl{color:var(--amber);border-color:var(--amber-border);background:var(--amber-bg)}
 .si-kbd-btn.cl:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
 .si-kbd-divider{height:1px;background:var(--border);margin:7px 0}
+/* ── PHONETIC MODE TOGGLE ── */
+.si-mode-bar{display:flex;gap:2px;background:var(--surface3);border-radius:6px;padding:2px;flex-shrink:0}
+.si-mode-btn{padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;color:var(--text3);transition:.15s;background:none;font-family:inherit}
+.si-mode-btn.active{background:#fff;color:var(--text);box-shadow:var(--shadow-xs)}
+.si-mode-btn:hover:not(.active){color:var(--text2)}
+/* ── SUGGESTION BAR ── */
+.ph-bar{display:none;gap:4px;flex-wrap:nowrap;overflow-x:auto;padding:0 0 8px;scrollbar-width:none}
+.ph-bar::-webkit-scrollbar{display:none}
+.ph-bar.open{display:flex}
+.ph-pill{padding:5px 14px;border-radius:20px;border:1.5px solid var(--g4);background:var(--g3);color:var(--g2);font-size:15px;cursor:pointer;white-space:nowrap;transition:.12s;flex-shrink:0;font-family:inherit}
+.ph-pill:hover{background:var(--g);color:#fff;border-color:var(--g)}
+.ph-pill:first-child{background:var(--g);color:#fff;border-color:var(--g2)}
 .item-price{font-size:13px;font-weight:700;color:var(--g)}
 .item-stock{font-size:10px;font-weight:700;margin-top:4px;padding:2px 6px;border-radius:20px;display:inline-block}
 .item-stock.ok{background:#f0fdf4;color:#15803d}
@@ -1905,7 +1917,7 @@ function openModal(bodyHtml,confirmTxt,cancelTxt,onConfirm,onCancel,title=''){
   if(onConfirm) ov.querySelector('#mConfirm').onclick=onConfirm;
   ov.querySelector('#mCancel').onclick=onCancel||closeModal;
 }
-function closeModal(){stopBarcodeScanner();hideSiKeyboard();if(_modal){_modal.remove();_modal=null;}}
+function closeModal(){stopBarcodeScanner();hideSiKeyboard();_phBarEl=null;_phBuffer='';_phCommitted='';if(_modal){_modal.remove();_modal=null;}}
 
 // ── INVENTORY ──
 function renderInventory(q=''){
@@ -1959,15 +1971,22 @@ function restockModal(id){
   );
 }
 function showAddProduct(){
-  _siOn = false;
+  _siOn = false; _siMode = 'kbd'; _phBuffer = ''; _phCommitted = '';
   openModal(
     `<div class="form-label">Product Name (English)</div>
     <input class="form-input" type="text" id="np-name" placeholder="e.g. Strawberries">
-    <div class="form-label">Product Name (Sinhala)</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <div class="form-label" style="margin-bottom:0">Product Name (Sinhala)</div>
+      <div class="si-mode-bar">
+        <button type="button" class="si-mode-btn active" id="siModeKbd" onclick="setSiMode('kbd')">Keyboard</button>
+        <button type="button" class="si-mode-btn" id="siModePh" onclick="setSiMode('ph')">Phonetic</button>
+      </div>
+    </div>
     <div class="si-input-row">
-      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siTransliterate(this,event)" onfocus="showSiKeyboard(this)">
+      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siFieldKeydown(this,event)" onfocus="onSiFieldFocus(this)">
       <button type="button" class="si-toggle" id="si-toggle-btn" onclick="toggleSiInput()">සිං</button>
     </div>
+    <div class="ph-bar" id="phBar"></div>
     <div class="form-2">
       <div><div class="form-label">Emoji</div><input class="form-input" type="text" id="np-em" placeholder="🍓" maxlength="2"></div>
       <div><div class="form-label">Age restricted?</div><select class="form-select" id="np-age"><option value="no">No</option><option value="yes">Yes (18+)</option></select></div>
@@ -2023,7 +2042,205 @@ function showAddProduct(){
     ()=>{stopBarcodeScanner();closeModal();},
     'Add new product'
   );
+  _phBarEl = document.getElementById('phBar');
 }
+// ── PHONETIC SINHALA ENGINE (fully offline) ──
+let _siMode = 'kbd', _phBuffer = '', _phCommitted = '', _phBarEl = null;
+
+// Consonants — longer entries first so the tokenizer tries them first
+const _PHCONS = {
+  'chh':'ඡ','ng':'ඞ','ny':'ඤ','gh':'ඝ','kh':'ඛ','jh':'ඣ','th':'ත',
+  'dh':'ධ','ph':'ඵ','bh':'භ','sh':'ශ','ll':'ළ','ch':'ච',
+  'k':'ක','g':'ග','j':'ජ','t':'ට','d':'ද','n':'න',
+  'p':'ප','b':'බ','m':'ම','y':'ය','r':'ར','l':'ල',
+  'v':'ව','w':'ව','s':'ස','h':'හ','f':'ෆ',
+};
+const _PHCONS_SORTED = Object.keys(_PHCONS).sort((a,b)=>b.length-a.length);
+
+// Vowel-only forms (standalone)
+const _PHVOWEL = {
+  'aee':'ඈ','aae':'ඈ','aa':'ආ','ae':'ඇ','ii':'ඊ','uu':'ඌ','ee':'ඒ','oo':'ඕ',
+  'a':'අ','i':'ඉ','u':'උ','e':'එ','o':'ඔ',
+};
+
+// Vowel suffixes attached to a consonant: [roman, sinhala_sign]
+// Longer suffixes first so generation uses them correctly
+const _PHVSUF = [
+  ['aee','ඈ'],['aae','ඈ'],['oo','ෝ'],['ee','ේ'],['aa','ා'],['ii','ී'],['uu','ූ'],
+  ['ae','ැ'],['an','ං'],['al','ල්'],
+  ['a',''],['i','ි'],['u','ු'],['e','ෙ'],['o','ො'],
+];
+
+// Word dictionary — common grocery / product terms
+const _PHWORDS = {
+  'kesel':'කෙසෙල්','amba':'අඹ','kiri':'කිරි','bath':'බත්',
+  'dambala':'දඹල','karawila':'කරවිල','mukunuwenna':'මුකුණුවැන්න',
+  'thakkali':'තක්කාලි','lunu':'ලූනු','garlic':'සුදුලූනු',
+  'ala':'අල','malu':'මාළු','mas':'මස්','bittara':'බිත්තර',
+  'paan':'පාන්','batter':'බටර්','cheese':'චීස්',
+  'watura':'වතුර','tel':'තෙල්','sini':'සීනි','piti':'පිටි',
+  'dambulu':'දඹුළු','polos':'පොළොස්','kohila':'කොහිල',
+  'kathurumurunga':'කතුරුමුරුංගා','gotukola':'ගොටුකොළ',
+  'kaju':'කජු','etti':'ඇට්ටි','goda':'ගොඩ','thambili':'තඹිලි',
+  'kurumba':'කුරුඹා','puhul':'පුහුල්','kadala':'කඩල',
+  'thenga':'තෙංගා','pol':'පොල්','rice':'හාල්','dal':'පරිප්පු',
+  'noodles':'නූඩ්ල්ස්','sugar':'සීනි','salt':'ලූනු','milk':'කිරි',
+  'butter':'බටර්','egg':'බිත්තර','bread':'පාන්','oil':'තෙල්',
+  'water':'වතුර','flour':'පිටි','garlic2':'ගාර්ලික්',
+};
+
+// Build syllable map (lazy, once)
+let _PHMAP = null, _PHMAP_KEYS = null;
+function _getPhMap() {
+  if (_PHMAP) return _PHMAP;
+  _PHMAP = Object.assign({}, _PHVOWEL);
+  for (const [cr, cs] of Object.entries(_PHCONS)) {
+    for (const [vr, vs] of _PHVSUF) {
+      const key = cr + vr;
+      if (!_PHMAP[key]) _PHMAP[key] = cs + vs;
+    }
+  }
+  _PHMAP_KEYS = Object.keys(_PHMAP).sort((a,b)=>b.length-a.length);
+  return _PHMAP;
+}
+
+// Greedy longest-match tokenizer
+function _phTokenize(s) {
+  const map = _getPhMap();
+  const keys = _PHMAP_KEYS;
+  let result = '', i = 0;
+  while (i < s.length) {
+    let hit = false;
+    for (const k of keys) {
+      if (s.startsWith(k, i)) { result += map[k]; i += k.length; hit = true; break; }
+    }
+    if (!hit) {
+      // trailing lone consonant → add hal kirima (virama)
+      let cHit = false;
+      for (const ck of _PHCONS_SORTED) {
+        if (s.startsWith(ck, i) && i + ck.length === s.length) {
+          result += _PHCONS[ck] + '්'; i += ck.length; cHit = true; break;
+        }
+      }
+      if (!cHit) i++; // skip unrecognised char
+    }
+  }
+  return result || null;
+}
+
+function _phSuggest(buf) {
+  if (!buf) return [];
+  const lo = buf.toLowerCase();
+  const seen = new Set();
+  const out = [];
+  function add(v) { if (v && !seen.has(v) && out.length < 5) { seen.add(v); out.push(v); } }
+
+  add(_PHWORDS[lo]);              // exact word match
+  const map = _getPhMap();
+  add(map[lo]);                   // exact syllable match
+  add(_phTokenize(lo));           // greedy tokenisation
+
+  // prefix word matches
+  for (const [k, v] of Object.entries(_PHWORDS)) {
+    if (k !== lo && k.startsWith(lo)) add(v);
+    if (out.length >= 5) break;
+  }
+  // prefix syllable matches
+  let pc = 0;
+  for (const k of _PHMAP_KEYS) {
+    if (k !== lo && k.startsWith(lo)) { add(map[k]); if (++pc >= 3) break; }
+  }
+  return out;
+}
+
+// Render field value from committed + buffer
+function _phRenderField() {
+  const el = document.getElementById('np-name-si');
+  if (el) el.value = _phCommitted + _phBuffer;
+}
+
+// Build / refresh suggestion pill bar
+function _phUpdateBar() {
+  if (!_phBarEl) return;
+  const sug = _phSuggest(_phBuffer);
+  if (!sug.length || !_phBuffer) { _phBarEl.className = 'ph-bar'; return; }
+  _phBarEl.className = 'ph-bar open';
+  _phBarEl.innerHTML = '';
+  sug.forEach(s => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ph-pill'; b.textContent = s;
+    b.onmousedown = e => e.preventDefault();
+    b.onclick = () => _phAccept(s);
+    _phBarEl.appendChild(b);
+  });
+}
+function _phClearBar() {
+  if (_phBarEl) { _phBarEl.className = 'ph-bar'; _phBarEl.innerHTML = ''; }
+}
+
+function _phAccept(sug) {
+  _phCommitted += sug;
+  _phBuffer = '';
+  _phRenderField();
+  _phClearBar();
+  const el = document.getElementById('np-name-si');
+  if (el) el.focus();
+}
+
+// Phonetic keydown handler
+function _phKeydown(e) {
+  const key = e.key;
+  if (key === 'Escape') {
+    e.preventDefault(); _phBuffer = ''; _phRenderField(); _phClearBar(); return;
+  }
+  if (key === 'Backspace') {
+    e.preventDefault();
+    if (_phBuffer.length > 0) { _phBuffer = _phBuffer.slice(0,-1); }
+    else { const ch = [..._phCommitted]; ch.pop(); _phCommitted = ch.join(''); }
+    _phRenderField(); _phUpdateBar(); return;
+  }
+  if (key === ' ') {
+    e.preventDefault();
+    const sug = _phSuggest(_phBuffer);
+    _phCommitted += (sug.length && _phBuffer ? sug[0] : _phBuffer) + ' ';
+    _phBuffer = ''; _phRenderField(); _phClearBar(); return;
+  }
+  if (key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault(); _phBuffer += key; _phRenderField(); _phUpdateBar(); return;
+  }
+}
+
+// Unified keydown dispatcher for the Sinhala field
+function siFieldKeydown(el, e) {
+  if (_siMode === 'ph') _phKeydown(e);
+  else siTransliterate(el, e);
+}
+
+// Unified focus handler for the Sinhala field
+function onSiFieldFocus(el) {
+  if (_siMode === 'kbd') showSiKeyboard(el);
+  else _phUpdateBar();
+}
+
+// Mode toggle
+function setSiMode(mode) {
+  _siMode = mode;
+  document.getElementById('siModeKbd')?.classList.toggle('active', mode === 'kbd');
+  document.getElementById('siModePh')?.classList.toggle('active', mode === 'ph');
+  const tog = document.getElementById('si-toggle-btn');
+  if (tog) tog.style.display = mode === 'kbd' ? '' : 'none';
+
+  _phBuffer = ''; _phClearBar();
+  if (mode === 'kbd') {
+    const el = document.getElementById('np-name-si');
+    if (el) { _phCommitted = el.value; showSiKeyboard(el); }
+  } else {
+    hideSiKeyboard();
+    const el = document.getElementById('np-name-si');
+    if (el) { _phCommitted = el.value; el.focus(); }
+  }
+}
+
 // ── SINHALA TRANSLITERATION ──
 let _siOn = false;
 function toggleSiInput(){
