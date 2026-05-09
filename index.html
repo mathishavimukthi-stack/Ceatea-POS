@@ -1980,7 +1980,11 @@ function renderInventory(q=''){
       <td>${stockCell}</td>
       <td><span class="stock-badge ${sc}">${sl}</span></td>
       <td style="text-align:center"><button onclick="toggleFavourite(${p.id})" style="background:none;border:none;cursor:pointer;font-size:18px;color:${p.is_favourite?'#f59e0b':'#d1d5db'}" title="${p.is_favourite?'Remove from favourites':'Add to favourites'}">${p.is_favourite?'★':'☆'}</button></td>
-      <td><button class="tbl-action" onclick="restockModal(${p.id})">+ Restock</button></td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="tbl-action" onclick="restockModal(${p.id})">+ Restock</button>
+        <button class="tbl-action" style="background:var(--surface2)" onclick="showEditProduct(${p.id})">Edit</button>
+        <button class="tbl-action" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border)" onclick="deleteProduct(${p.id})">Delete</button>
+      </td>
     </tr>`;
   }).join('');
   renderInvStats();
@@ -2076,6 +2080,93 @@ function showAddProduct(){
     'Add new product'
   );
   _phBarEl = document.getElementById('phBar');
+}
+function showEditProduct(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  _siOn=false;_siMode='kbd';_phBuffer='';_phCommitted='';
+  openModal(
+    `<div class="form-label">Product Name (English)</div>
+    <input class="form-input" type="text" id="np-name" placeholder="e.g. Strawberries">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <div class="form-label" style="margin-bottom:0">Product Name (Sinhala)</div>
+      <div class="si-mode-bar">
+        <button type="button" class="si-mode-btn active" id="siModeKbd" onclick="setSiMode('kbd')">Keyboard</button>
+        <button type="button" class="si-mode-btn" id="siModePh" onclick="setSiMode('ph')">Phonetic</button>
+      </div>
+    </div>
+    <div class="si-input-row">
+      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siFieldKeydown(this,event)" onfocus="onSiFieldFocus(this)">
+      <button type="button" class="si-toggle" id="si-toggle-btn" onclick="toggleSiInput()">සිං</button>
+    </div>
+    <div class="ph-bar" id="phBar"></div>
+    <div class="form-label">Age restricted?</div>
+    <select class="form-select" id="np-age" style="margin-bottom:10px"><option value="no">No</option><option value="yes">Yes (18+)</option></select>
+    <div class="form-2">
+      <div><div class="form-label">Price (Rs.)</div><input class="form-input" type="number" id="np-price" min="0" step="0.01" placeholder="0.00"></div>
+      <div><div class="form-label">Stock</div><input class="form-input" type="number" id="np-stock" min="0" placeholder="0"></div>
+    </div>
+    <div class="form-2">
+      <div>
+        <div class="form-label">Unit</div>
+        <select class="form-select" id="np-unit">
+          <option value="count">count (each)</option>
+          <option value="kg">kg</option>
+          <option value="g">g</option>
+          <option value="L">L</option>
+          <option value="ml">ml</option>
+        </select>
+      </div>
+      <div><div class="form-label">Category</div><select class="form-select" id="np-cat">${CATEGORIES.filter(c=>c!=='All').map(c=>`<option>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-label">Barcode</div>
+    <div class="barcode-row">
+      <input class="form-input" type="text" id="np-barcode" placeholder="e.g. 5901234123457 — or scan">
+      <button type="button" class="scan-btn" id="scanToggleBtn" onclick="toggleBarcodeScanner()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="3" height="10"/><rect x="7" y="5" width="1" height="14"/><rect x="10" y="7" width="2" height="10"/><rect x="14" y="5" width="1" height="14"/><rect x="17" y="7" width="3" height="10"/></svg>
+        Scan
+      </button>
+    </div>
+    <div id="barcodeScanArea" style="display:none">
+      <video id="barcodeVideo" autoplay playsinline muted></video>
+      <div id="barcodeScanLine"></div>
+      <div id="barcodeScanStatus">Align barcode in view…</div>
+    </div>`,
+    'Save changes','Cancel',
+    async ()=>{
+      stopBarcodeScanner();
+      const name=document.getElementById('np-name').value.trim();
+      const name_si=document.getElementById('np-name-si').value.trim();
+      const price=parseFloat(document.getElementById('np-price').value)||0;
+      const stock=parseInt(document.getElementById('np-stock').value)||0;
+      const cat=document.getElementById('np-cat').value;
+      const age=document.getElementById('np-age').value==='yes';
+      const unit=document.getElementById('np-unit').value||'count';
+      const barcode=document.getElementById('np-barcode').value.trim();
+      if(!name){toast('Name is required');return;}
+      await dbOp('products','update',{name,name_si,cat,price,stock,age,unit,barcode},'id',p.id);
+      Object.assign(p,{name,name_si,cat,price,stock,age,unit,barcode});
+      closeModal();renderInventory('');renderGrid();toast(name+' updated');
+    },
+    ()=>{stopBarcodeScanner();closeModal();},
+    'Edit product'
+  );
+  document.getElementById('np-name').value=p.name;
+  document.getElementById('np-name-si').value=p.name_si||'';
+  document.getElementById('np-price').value=p.price;
+  document.getElementById('np-stock').value=p.stock;
+  document.getElementById('np-age').value=p.age?'yes':'no';
+  document.getElementById('np-unit').value=p.unit||'count';
+  document.getElementById('np-cat').value=p.cat;
+  document.getElementById('np-barcode').value=p.barcode||'';
+  _phBarEl=document.getElementById('phBar');
+}
+function deleteProduct(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const ok=confirm(`Are you sure you want to delete "${p.name}"?\nThis cannot be undone.`);
+  if(!ok)return;
+  dbOp('products','delete',null,'id',id);
+  products=products.filter(x=>x.id!==id);
+  renderInventory('');renderGrid();toast(p.name+' deleted');
 }
 // ── PRODUCT AVATAR ──
 function _pAvatar(name, sz=28) {
