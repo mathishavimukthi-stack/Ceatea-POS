@@ -57,6 +57,7 @@ function registerIpcHandlers() {
     const products = db.prepare('SELECT * FROM products ORDER BY id').all().map(r => ({
       id:      r.id,
       name:    r.name,
+      name_si: r.name_si || '',
       em:      r.em || '📦',
       cat:     r.cat,
       price:   r.price,

@@ -144,6 +144,12 @@ input,select{font-family:inherit}
 .item-card.oos:hover{transform:none;box-shadow:none;border-color:var(--border)}
 .item-emoji{font-size:26px;margin-bottom:6px;display:block;line-height:1}
 .item-name{font-size:11px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:3px}
+.item-name-si{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:1px}
+.item-name-en{font-size:10px;font-weight:500;color:var(--text3);line-height:1.2;margin-bottom:3px}
+.si-input-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:10px}
+.si-input-row .form-input{margin-bottom:0;flex:1}
+.si-toggle{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:11px;font-weight:700;background:var(--surface2);color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;line-height:1.4}
+.si-toggle.on{background:var(--g);color:#fff;border-color:var(--g)}
 .item-price{font-size:13px;font-weight:700;color:var(--g)}
 .item-stock{font-size:10px;font-weight:700;margin-top:4px;padding:2px 6px;border-radius:20px;display:inline-block}
 .item-stock.ok{background:#f0fdf4;color:#15803d}
@@ -1336,7 +1342,7 @@ function renderGrid(){
     if(activeCat!=='All' && p.cat!==activeCat) return false;
     if(stockFilter==='low' && !(p.stock>0 && p.stock<=p.low)) return false;
     if(stockFilter==='age' && !p.age) return false;
-    if(q && !p.name.toLowerCase().includes(q)) return false;
+    if(q && !p.name.toLowerCase().includes(q) && !(p.name_si||'').toLowerCase().includes(q)) return false;
     return true;
   });
   const g = document.getElementById('itemsGrid');
@@ -1348,9 +1354,12 @@ function renderGrid(){
     const stxt = p.stock===0?'Out of stock':p.stock<=p.low?`Low: ${p.stock}`:`In stock: ${p.stock}`;
     const d = document.createElement('div');
     d.className = 'item-card' + (p.stock===0?' oos':'');
+    const nameHtml = p.name_si
+      ? `<div class="item-name-si">${p.name_si}</div><div class="item-name-en">${p.name}</div>`
+      : `<div class="item-name">${p.name}</div>`;
     d.innerHTML = `
       ${p.age?'<div class="item-age-badge">18+</div>':''}
-      <div class="item-name">${p.name}</div>
+      ${nameHtml}
       <div class="item-price">Rs.${p.price.toFixed(2)}<span style="font-size:9px;font-weight:500;color:var(--text3);margin-left:2px">/${p.unit||'ea'}</span></div>
       <span class="item-stock ${sc}">${stxt}</span>
       ${inCart?`<div class="item-badge">${inCart.qty}</div>`:''}
@@ -1934,9 +1943,15 @@ function restockModal(id){
   );
 }
 function showAddProduct(){
+  _siOn = false;
   openModal(
-    `<div class="form-label">Product name</div>
+    `<div class="form-label">Product Name (English)</div>
     <input class="form-input" type="text" id="np-name" placeholder="e.g. Strawberries">
+    <div class="form-label">Product Name (Sinhala)</div>
+    <div class="si-input-row">
+      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siTransliterate(this,event)">
+      <button type="button" class="si-toggle" id="si-toggle-btn" onclick="toggleSiInput()">සිං</button>
+    </div>
     <div class="form-2">
       <div><div class="form-label">Emoji</div><input class="form-input" type="text" id="np-em" placeholder="🍓" maxlength="2"></div>
       <div><div class="form-label">Age restricted?</div><select class="form-select" id="np-age"><option value="no">No</option><option value="yes">Yes (18+)</option></select></div>
@@ -1975,6 +1990,7 @@ function showAddProduct(){
     async ()=>{
       stopBarcodeScanner();
       const name=document.getElementById('np-name').value.trim();
+      const name_si=document.getElementById('np-name-si').value.trim();
       const em=document.getElementById('np-em').value||'📦';
       const price=parseFloat(document.getElementById('np-price').value)||0;
       const stock=parseInt(document.getElementById('np-stock').value)||0;
@@ -1983,7 +1999,7 @@ function showAddProduct(){
       const unit=document.getElementById('np-unit').value||'count';
       const barcode=document.getElementById('np-barcode').value.trim();
       if(!name){toast('Name is required');return;}
-      const newProd={name,em,cat,price,stock,low:5,age,unit,barcode};
+      const newProd={name,name_si,em,cat,price,stock,low:5,age,unit,barcode};
       const ins = await dbOp('products','insert',newProd);
       products.push({id:ins?.id||Date.now(),...newProd});
       closeModal();renderInventory('');renderGrid();toast(name+' added');
@@ -1992,6 +2008,49 @@ function showAddProduct(){
     'Add new product'
   );
 }
+// ── SINHALA TRANSLITERATION ──
+let _siOn = false;
+function toggleSiInput(){
+  _siOn = !_siOn;
+  const btn = document.getElementById('si-toggle-btn');
+  if(btn) btn.classList.toggle('on', _siOn);
+}
+const _SIMAP = [
+  ['nga','ඞ'],['aa','ආ'],['ii','ඊ'],['uu','ූ'],['ae','ැ'],
+  ['ke','කෙ'],['ge','ගෙ'],['te','තෙ'],['de','දෙ'],['ne','නෙ'],
+  ['pe','පෙ'],['be','බෙ'],['me','මෙ'],['se','සෙ'],['he','හෙ'],
+  ['le','ලෙ'],['re','රෙ'],
+  ['ki','කි'],['gi','ගි'],['ti','ති'],['di','දි'],['ni','නි'],
+  ['pi','පි'],['bi','බි'],['mi','මි'],
+  ['ko','කො'],['go','ගො'],['to','තො'],['do','දො'],['no','නො'],
+  ['po','පො'],['bo','බො'],['mo','මො'],
+  ['ka','ක'],['ga','ග'],['ca','ච'],['ja','ජ'],['ta','ත'],
+  ['da','ද'],['na','න'],['pa','ප'],['ba','බ'],['ma','ම'],
+  ['ya','ය'],['ra','ර'],['la','ළ'],['va','ව'],['sa','ස'],
+  ['ha','හ'],['fa','ෆ'],
+  ['a','අ'],['i','ඉ'],['u','උ'],['e','එ'],['o','ඔ'],
+];
+function siTransliterate(el, e){
+  if(!_siOn) return;
+  if(e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+  e.preventDefault();
+  const start = el.selectionStart;
+  const before = el.value.slice(0, start);
+  const after  = el.value.slice(el.selectionEnd);
+  const candidate = before + e.key;
+  for(const [rom, sin] of _SIMAP){
+    if(candidate.toLowerCase().endsWith(rom)){
+      const base = candidate.slice(0, candidate.length - rom.length);
+      el.value = base + sin + after;
+      const pos = (base + sin).length;
+      el.setSelectionRange(pos, pos);
+      return;
+    }
+  }
+  el.value = before + e.key + after;
+  el.setSelectionRange(start + 1, start + 1);
+}
+
 // ── BARCODE SCANNER ──
 let _bcStream=null, _bcFrame=null, _bcScanning=false;
 async function toggleBarcodeScanner(){

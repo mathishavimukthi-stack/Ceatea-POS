@@ -2,15 +2,18 @@
 
 const Database = require('better-sqlite3');
 const path     = require('path');
-const { app }  = require('electron');
 
-const DB_PATH = path.join(app.getPath('userData'), 'ceatea.db');
-
-let _db = null;
+let _db   = null;
+let _path = null;
 
 function getDb() {
   if (_db) return _db;
-  _db = new Database(DB_PATH);
+  if (!_path) {
+    // Lazy: only safe to call after app is ready
+    const { app } = require('electron');
+    _path = path.join(app.getPath('userData'), 'ceatea.db');
+  }
+  _db = new Database(_path);
   _db.pragma('journal_mode = WAL');
   _db.pragma('foreign_keys = ON');
   initSchema();
@@ -96,6 +99,9 @@ function initSchema() {
       value TEXT NOT NULL
     );
   `);
+
+  // Migration: add name_si if the column doesn't exist yet
+  try { _db.exec(`ALTER TABLE products ADD COLUMN name_si TEXT NOT NULL DEFAULT ''`); } catch {}
 
   seedIfEmpty();
 }
