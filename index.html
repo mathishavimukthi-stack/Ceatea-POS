@@ -1396,7 +1396,7 @@ function renderGrid(){
       : `<div class="item-name">${p.name}</div>`;
     d.innerHTML = `
       ${p.age?'<div class="item-age-badge">18+</div>':''}
-      ${_pAvatar(p.name_si||p.name,30)}
+      ${_pAvatar(p.name,30)}
       ${nameHtml}
       <div class="item-price">Rs.${p.price.toFixed(2)}<span style="font-size:9px;font-weight:500;color:var(--text3);margin-left:2px">/${p.unit||'ea'}</span></div>
       <span class="item-stock ${sc}">${stxt}</span>
@@ -2053,9 +2053,12 @@ function showAddProduct(){
 }
 // ── PRODUCT AVATAR ──
 function _pAvatar(name, sz=28) {
-  const l = (name||'?')[0].toUpperCase();
-  const cs = ['#16a97e','#2563eb','#d97706','#e53535','#7c3aed','#0891b2','#059669','#db2777'];
-  const bg = cs[l.charCodeAt(0) % cs.length];
+  const n = name || '?';
+  const l = n[0].toUpperCase();
+  const cs = ['#E74C3C','#E67E22','#F1C40F','#2ECC71','#1ABC9C','#3498DB','#9B59B6','#E91E63','#FF5722','#607D8B'];
+  let hash = 0;
+  for (let i = 0; i < n.length; i++) hash = n.charCodeAt(i) + ((hash << 5) - hash);
+  const bg = cs[Math.abs(hash) % cs.length];
   const fs = Math.round(sz * 0.44);
   return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;flex-shrink:0;margin:0 auto">${l}</div>`;
 }
