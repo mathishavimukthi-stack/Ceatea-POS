@@ -13,7 +13,7 @@
     "better-sqlite3": "^9.4.3"
   },
   "devDependencies": {
-    "electron": "^29.1.0",
+    "electron": "^28.3.3",
     "electron-builder": "^24.13.3"
   },
   "build": {
@@ -21,7 +21,9 @@
     "productName": "Ceatea POS",
     "copyright": "Copyright © 2025 Ceatea",
     "asar": true,
-    "asarUnpack": ["**/better-sqlite3/**"],
+    "asarUnpack": [
+      "**/better-sqlite3/**"
+    ],
     "files": [
       "main.js",
       "preload.js",
@@ -32,7 +34,16 @@
       "node_modules/**"
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }]
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
