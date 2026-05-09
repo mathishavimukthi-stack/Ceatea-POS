@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ceatea POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600&display=swap" rel="stylesheet">
 <!-- Supabase CDN removed — data layer replaced by Electron/SQLite -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -176,6 +177,8 @@ input,select{font-family:inherit}
 .si-kbd-divider{height:1px;background:var(--border);margin:7px 0}
 .si-kbd-display{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:5px 10px;font-size:14px;min-height:30px;margin-bottom:8px;color:var(--text);word-break:break-all;line-height:1.5;text-align:left}
 .si-kbd-display:empty::before{content:'Type to see input…';color:var(--text4);font-size:11px}
+/* Sinhala font — Noto Sans Sinhala when online, Iskoola Pota as Windows fallback */
+#np-name-si,.si-kbd-display,.si-kbd-btn,.ph-pill,.item-name-si{font-family:'Noto Sans Sinhala','Iskoola Pota',sans-serif}
 /* ── PHONETIC MODE TOGGLE ── */
 .si-mode-bar{display:flex;gap:2px;background:var(--surface3);border-radius:6px;padding:2px;flex-shrink:0}
 .si-mode-btn{padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;color:var(--text3);transition:.15s;background:none;font-family:inherit}
@@ -2023,7 +2026,7 @@ function showAddProduct(){
       </div>
     </div>
     <div class="si-input-row">
-      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siFieldKeydown(this,event)" onfocus="onSiFieldFocus(this)">
+      <input class="form-input" type="text" id="np-name-si" lang="si" placeholder="Optional" autocomplete="off" onkeydown="siFieldKeydown(this,event)" onfocus="onSiFieldFocus(this)">
       <button type="button" class="si-toggle" id="si-toggle-btn" onclick="toggleSiInput()">සිං</button>
     </div>
     <div class="ph-bar" id="phBar"></div>
@@ -2095,7 +2098,7 @@ function showEditProduct(id){
       </div>
     </div>
     <div class="si-input-row">
-      <input class="form-input" type="text" id="np-name-si" placeholder="Optional" autocomplete="off" onkeydown="siFieldKeydown(this,event)" onfocus="onSiFieldFocus(this)">
+      <input class="form-input" type="text" id="np-name-si" lang="si" placeholder="Optional" autocomplete="off" onkeydown="siFieldKeydown(this,event)" onfocus="onSiFieldFocus(this)">
       <button type="button" class="si-toggle" id="si-toggle-btn" onclick="toggleSiInput()">සිං</button>
     </div>
     <div class="ph-bar" id="phBar"></div>
