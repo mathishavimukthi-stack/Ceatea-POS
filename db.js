@@ -102,6 +102,8 @@ function initSchema() {
 
   // Migration: add name_si if the column doesn't exist yet
   try { _db.exec(`ALTER TABLE products ADD COLUMN name_si TEXT NOT NULL DEFAULT ''`); } catch {}
+  // Migration: add is_favourite if the column doesn't exist yet
+  try { _db.exec(`ALTER TABLE products ADD COLUMN is_favourite INTEGER NOT NULL DEFAULT 0`); } catch {}
 
   seedIfEmpty();
 }

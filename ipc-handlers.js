@@ -55,16 +55,17 @@ function registerIpcHandlers() {
     };
 
     const products = db.prepare('SELECT * FROM products ORDER BY id').all().map(r => ({
-      id:      r.id,
-      name:    r.name,
-      name_si: r.name_si || '',
-      cat:     r.cat,
-      price:   r.price,
-      stock:   r.stock,
-      low:     r.low,
-      age:     !!r.age,
-      barcode: r.barcode || '',
-      unit:    r.unit    || 'count',
+      id:           r.id,
+      name:         r.name,
+      name_si:      r.name_si      || '',
+      cat:          r.cat,
+      price:        r.price,
+      stock:        r.stock,
+      low:          r.low,
+      age:          !!r.age,
+      barcode:      r.barcode      || '',
+      unit:         r.unit         || 'count',
+      is_favourite: !!r.is_favourite,
     }));
 
     const transactions = db.prepare(

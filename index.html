@@ -134,6 +134,10 @@ input,select{font-family:inherit}
 .filter-pill:hover:not(.active):not(.low-active){background:var(--surface2);border-color:var(--border2)}
 .age-pill{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
 .age-pill.active{background:var(--red);color:#fff;border-color:var(--red)}
+.fav-pill{background:#fffbeb;color:#b45309;border-color:#fcd34d}
+.fav-pill.fav-active{background:#f59e0b;color:#fff;border-color:#f59e0b}
+.item-fav-btn{position:absolute;top:5px;right:6px;background:none;border:none;cursor:pointer;font-size:15px;line-height:1;padding:2px;color:#d1d5db;transition:color .15s;z-index:2}
+.item-fav-btn.on{color:#f59e0b}
 .cats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:7px 14px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;align-items:center}
 .cats-bar::-webkit-scrollbar{display:none}
 .cat-chip{padding:5px 14px;border-radius:24px;font-size:11px;font-weight:700;border:1.5px solid var(--border);color:var(--text2);white-space:nowrap;transition:.15s;cursor:pointer;background:transparent}
@@ -718,6 +722,7 @@ tbody tr:hover{background:var(--surface2)}
             <button class="filter-pill active" id="fAll" onclick="setStockFilter('all',this)">All</button>
             <button class="filter-pill" id="fLow" onclick="setStockFilter('low',this)">Low</button>
             <button class="filter-pill age-pill" id="fAge" onclick="setStockFilter('age',this)">18+</button>
+            <button class="filter-pill fav-pill" id="fFav" onclick="setStockFilter('fav',this)">★ Favourites</button>
           </div>
           <div class="cats-bar" id="catsBar"></div>
           <div class="grid-area"><div class="items-grid" id="itemsGrid"></div></div>
@@ -868,7 +873,7 @@ tbody tr:hover{background:var(--surface2)}
           <div class="inv-table-wrap">
             <table>
               <thead>
-                <tr><th>Product</th><th>Category</th><th>Unit</th><th>Price (Rs.)</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Product</th><th>Category</th><th>Unit</th><th>Price (Rs.)</th><th>Stock</th><th>Status</th><th>Fav</th><th>Actions</th></tr>
               </thead>
               <tbody id="invTbody"></tbody>
             </table>
@@ -1365,11 +1370,22 @@ function initCats(){
 function setStockFilter(f, el){
   stockFilter = f;
   document.querySelectorAll('.filter-pill').forEach(x=>{
-    x.classList.remove('active','low-active');
+    x.classList.remove('active','low-active','fav-active');
   });
   if(f==='low') el.classList.add('low-active');
+  else if(f==='fav') el.classList.add('fav-active');
   else el.classList.add('active');
   renderGrid();
+}
+
+// ── FAVOURITES ──
+function toggleFavourite(id){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  p.is_favourite = !p.is_favourite;
+  window.electronAPI.dbOp('products','update',{is_favourite:p.is_favourite?1:0},'id',p.id);
+  renderGrid();
+  renderInventory('');
 }
 
 // ── GRID ──
@@ -1379,12 +1395,19 @@ function renderGrid(){
     if(activeCat!=='All' && p.cat!==activeCat) return false;
     if(stockFilter==='low' && !(p.stock>0 && p.stock<=p.low)) return false;
     if(stockFilter==='age' && !p.age) return false;
+    if(stockFilter==='fav' && !p.is_favourite) return false;
     if(q && !p.name.toLowerCase().includes(q) && !(p.name_si||'').toLowerCase().includes(q)) return false;
     return true;
   });
   const g = document.getElementById('itemsGrid');
   g.innerHTML = '';
-  if(!list.length){g.innerHTML='<div class="no-results">No products found</div>';return;}
+  if(!list.length){
+    const msg = stockFilter==='fav'
+      ? 'No favourites yet — click the ★ on any product to add it'
+      : 'No products found';
+    g.innerHTML=`<div class="no-results">${msg}</div>`;
+    return;
+  }
   list.forEach(p=>{
     const inCart = cart.find(c=>c.id===p.id);
     const sc = p.stock===0?'out':p.stock<=p.low?'low':'ok';
@@ -1396,12 +1419,14 @@ function renderGrid(){
       : `<div class="item-name">${p.name}</div>`;
     d.innerHTML = `
       ${p.age?'<div class="item-age-badge">18+</div>':''}
+      <button class="item-fav-btn${p.is_favourite?' on':''}" title="${p.is_favourite?'Remove from favourites':'Add to favourites'}">${p.is_favourite?'★':'☆'}</button>
       ${_pAvatar(p.name,30)}
       ${nameHtml}
       <div class="item-price">Rs.${p.price.toFixed(2)}<span style="font-size:9px;font-weight:500;color:var(--text3);margin-left:2px">/${p.unit||'ea'}</span></div>
       <span class="item-stock ${sc}">${stxt}</span>
       ${inCart?`<div class="item-badge">${inCart.qty}</div>`:''}
     `;
+    d.querySelector('.item-fav-btn').onclick = (e)=>{ e.stopPropagation(); toggleFavourite(p.id); };
     if(p.stock>0){
       d.onclick = ()=>{
         if(p.age) showAgeModal(p);
@@ -1954,6 +1979,7 @@ function renderInventory(q=''){
       <td>${priceCell}</td>
       <td>${stockCell}</td>
       <td><span class="stock-badge ${sc}">${sl}</span></td>
+      <td style="text-align:center"><button onclick="toggleFavourite(${p.id})" style="background:none;border:none;cursor:pointer;font-size:18px;color:${p.is_favourite?'#f59e0b':'#d1d5db'}" title="${p.is_favourite?'Remove from favourites':'Add to favourites'}">${p.is_favourite?'★':'☆'}</button></td>
       <td><button class="tbl-action" onclick="restockModal(${p.id})">+ Restock</button></td>
     </tr>`;
   }).join('');
